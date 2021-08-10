@@ -6,6 +6,8 @@
 #include <QPoint>
 #include <QWidget>
 #include "floattexture.h"
+#include "image_manager.h"
+#include "painter_manager.h"
 
 class Little_Painter : public QWidget
 {
@@ -19,8 +21,11 @@ public:
     void setPenWidth(int newWidth);
 
     bool isModified() const { return m_modified; }
-    QColor penColor() const { return m_penColor; }
-    int penWidth() const { return m_penWidth; }
+    QColor penColor() const;
+    int penWidth() const;
+    void SetBrushType(int value);
+    void SetBrushCircle();
+    void SetBrushTexture();
 
 public slots:
     void ClearImage();
@@ -36,17 +41,21 @@ signals:
 
 private:
     void drawLineTo(const QPoint &endPoint);
-    void drawEnd();
+    void drawLineToBrush(int &pointsX, int &pointsY, int &posX, int &posY, int& radius, QPainter& painter);
     void resizeImage(QImage* image, const QSize &newSize);
 
     bool m_modified = false;
     bool m_painting = false;
-    int m_penWidth = 1;
-    QColor m_penColor = Qt::blue;
+    bool m_firstHit = false;
     QImage m_image;
     QPoint m_lastPoint;
+    QPoint m_measurePoint;
 
     FloatTexture m_floatTexture;
+
+    painter_manager m_painterManager;
+
+    image_manager m_im;
 
 };
 

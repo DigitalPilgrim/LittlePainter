@@ -10,15 +10,22 @@ CONFIG += c++11
 
 SOURCES += \
     floattexture.cpp \
+    image_manager.cpp \
     little_painter.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    painter_brush.cpp \
+    painter_manager.cpp
 
 HEADERS += \
     KolkoCasuSomStravil.h \
     floattexture.h \
+    graphic_helper_functions.h \
+    image_manager.h \
     little_painter.h \
-    mainwindow.h
+    mainwindow.h \
+    painter_brush.h \
+    painter_manager.h
 
 FORMS += \
     mainwindow.ui
@@ -27,3 +34,7 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+DISTFILES += \
+    Resources/texture1.png \
+    Resources/texture2.png

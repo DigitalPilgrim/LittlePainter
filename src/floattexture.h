@@ -21,7 +21,7 @@ struct FRGBA
 
 class FloatTexture
 {
-    std::vector<std::vector<FRGBA>> xy;
+    std::vector<std::vector<FRGBA>> yx;
     QSize m_size;
 public:
     FloatTexture();

@@ -39,6 +39,8 @@
     <addaction name="actionChange_a_Pen_Size"/>
     <addaction name="actionPen_Color"/>
     <addaction name="actionClear_Image"/>
+    <addaction name="actionBrush_Circle"/>
+    <addaction name="actionBrush_Texture"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -77,6 +79,16 @@
   <action name="actionPen_Color">
    <property name="text">
     <string>Pen Color</string>
+   </property>
+  </action>
+  <action name="actionBrush_Circle">
+   <property name="text">
+    <string>Brush Circle</string>
+   </property>
+  </action>
+  <action name="actionBrush_Texture">
+   <property name="text">
+    <string>Brush Texture</string>
    </property>
   </action>
  </widget>

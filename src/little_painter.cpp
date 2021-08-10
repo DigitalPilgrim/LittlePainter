@@ -1,9 +1,12 @@
 #include "little_painter.h"
+#include "graphic_helper_functions.h"
 
 
 #include <QMouseEvent>
 #include <QPainter>
 #include <QMessageBox>
+#include <QDebug>
+#include <QCoreApplication>
 
 // ----------------------------------------------------------------------------------------------------
 
@@ -13,6 +16,10 @@ Little_Painter::Little_Painter(QWidget *parent) : QWidget(parent)
     setAttribute(Qt::WA_StaticContents);
     m_floatTexture.Size(parent->size());
     ClearImage();
+    m_im.ResourcePath(QCoreApplication::applicationDirPath() + "/Resources");
+    m_painterManager.Initialize();
+    m_painterManager.BrushType(e_brushType::circleBrush);
+    m_painterManager.Color(Qt::blue);
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -48,14 +55,39 @@ bool Little_Painter::saveImage(const QString &fileName, const char* fileFormat)
 
 void Little_Painter::setPenColor(const QColor &newColor)
 {
-    m_penColor = newColor;
+    m_painterManager.Color(newColor);
 }
 
 // ----------------------------------------------------------------------------------------------------
 
 void Little_Painter::setPenWidth(int newWidth)
 {
-    m_penWidth = newWidth;
+    m_painterManager.Width(newWidth);
+}
+
+QColor Little_Painter::penColor() const
+{
+    return m_painterManager.Color();
+}
+
+int Little_Painter::penWidth() const
+{
+    return m_painterManager.Width();
+}
+
+void Little_Painter::SetBrushType(int value)
+{
+    m_painterManager.BrushType(static_cast<e_brushType>(value));
+}
+
+void Little_Painter::SetBrushCircle()
+{
+    m_painterManager.BrushType(e_brushType::circleBrush);
+}
+
+void Little_Painter::SetBrushTexture()
+{
+    m_painterManager.BrushType(e_brushType::textureBrush);
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -63,7 +95,6 @@ void Little_Painter::setPenWidth(int newWidth)
 void Little_Painter::ClearImage()
 {
     m_image.fill(QColor(255, 255, 255, 255));
-    //m_image.fill(qRgb(255, 255, 255));
     m_modified = true;
     update();
 }
@@ -75,6 +106,8 @@ void Little_Painter::mousePressEvent(QMouseEvent *event)
     if(event->button() == Qt::LeftButton)
     {
         m_lastPoint = event->position().toPoint();
+        m_measurePoint = event->position().toPoint();
+        m_firstHit = true;
         drawLineTo(event->position().toPoint());
         m_painting = true;
     }
@@ -94,8 +127,7 @@ void Little_Painter::mouseReleaseEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton && m_painting)
     {
-        drawLineTo(event->position().toPoint());
-        drawEnd();
+        //drawLineTo(event->position().toPoint());
         m_painting = false;
     }
 }
@@ -130,36 +162,36 @@ void Little_Painter::drawLineTo(const QPoint &endPoint)
 {
     QPainter painter(&m_image);
     painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-    if (m_lastPoint == endPoint)
+    QRect area;
+
+    m_painterManager.set_lastPoint(m_lastPoint);
+    m_painterManager.set_measurePoint(m_measurePoint);
+    m_painterManager.draw(painter, endPoint, area);
+
+    if (m_floatTexture.SetImage(m_image, area) == false)
     {
-        painter.setPen(Qt::NoPen);
-        painter.setBrush(QBrush(m_penColor));
-        int radius = m_penWidth + 2;
-        painter.drawEllipse(endPoint.x() -  (radius / 2)
-                            , endPoint.y() -  (radius / 2)
-                            , radius, radius);
+        QMessageBox::warning(this, "Warning", "Image was not copied");
     }
-    else
-    {
-        painter.setPen(QPen(m_penColor, m_penWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-        painter.drawLine(m_lastPoint, endPoint);
-    }
-
-
-    m_modified = true;
-
-    int rad = (m_penWidth / 2.0) + 2;
-    update(QRect(m_lastPoint, endPoint).normalized().adjusted(-rad, -rad, +rad, +rad));
+    update(area);
     m_lastPoint = endPoint;
 }
 
 // ----------------------------------------------------------------------------------------------------
 
-void Little_Painter::drawEnd()
+void Little_Painter::drawLineToBrush(int &pointsX, int &pointsY, int &posX, int &posY, int& radius, QPainter& painter)
 {
-    if (m_floatTexture.SetImage(m_image) == false)
+    for (int x = 0, y = 0; x < pointsX; x++)
     {
-        QMessageBox::warning(this, "Warning", "Image was not copied");
+        posX += x;
+        ++y;
+        if (y == pointsY)
+        {
+            y = 0;
+            posY += y;
+        }
+        painter.drawEllipse(posX -  (radius / 2)
+                            , posY -  (radius / 2)
+                            , radius, radius);
     }
 }
 

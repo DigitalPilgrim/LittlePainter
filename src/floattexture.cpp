@@ -1,5 +1,6 @@
 #include "floattexture.h"
 
+
 FloatTexture::FloatTexture()
 {
 
@@ -7,10 +8,10 @@ FloatTexture::FloatTexture()
 
 void FloatTexture::Size(const QSize size)
 {
-    xy.resize(size.width());
-    for (int x = 0; x < size.width(); x++)
+    yx.resize(size.height());
+    for (int x = 0; x < size.height(); x++)
     {
-        xy[x].resize(size.height());
+        yx[x].resize(size.width());
     }
     m_size = size;
 }
@@ -34,14 +35,14 @@ bool FloatTexture::SetPixelColor(const QColor &c, const QPoint &pos)
 {
     bool ok = false;
 
-    if (pos.x() < xy.size() && pos.y() < xy[0].size())
+    if (pos.y() < yx.size() && pos.x() < yx[0].size())
     {
         float   r = 0.0
                 , g = 0.0
                 , b = 0.0
                 , a =0.0;
         c.getRgbF(&r, &g, &b, &a);
-        xy[pos.x()][pos.y()] = { r, g, b, a };
+        yx[pos.y()][pos.x()] = { r, g, b, a };
         ok = true;
     }
 
@@ -52,9 +53,9 @@ bool FloatTexture::SetPixelColor(const float &r, const float &g, const float &b,
 {
     bool ok = false;
 
-    if (pos.x() < xy.size() && pos.y() < xy[0].size())
+    if (pos.y() < yx.size() && pos.x() < yx[0].size())
     {
-        xy[pos.x()][pos.y()] = { r, g, b, a };
+        yx[pos.y()][pos.x()] = { r, g, b, a };
         ok = true;
     }
 
@@ -70,7 +71,7 @@ bool FloatTexture::SetImage(const QImage &image)
     if (image.size() != Size())
     {
         Size(image.size());
-        if (xy.size() < image.size().width() && xy[0].size() < image.size().height())
+        if (yx.size() < image.size().height() && yx[0].size() < image.size().width())
         {
             ok = false;
         }
@@ -94,7 +95,27 @@ bool FloatTexture::SetImage(const QImage &image)
 
 bool FloatTexture::SetImage(const QImage &image, const QRect &area)
 {
-    bool ok = false;
+    bool ok = true;
+    QColor c;
+
+    int areaX = area.left()
+            , areaXmax = area.right()
+            , areaY = area.top()
+            , areaYmax = area.bottom();
+
+    if (areaX < 0) areaX = 0;
+    if (areaXmax > m_size.width()) areaXmax = m_size.width();
+    if (areaY < 0) areaY = 0;
+    if (areaYmax > m_size.height()) areaYmax = m_size.height();
+
+    for (int x = areaX; x < areaXmax; x++)
+    {
+        for (int y = areaY; y < areaYmax; y++)
+        {
+            c = image.pixelColor(x, y);
+            SetPixelColorInternal(c, QPoint(x, y));
+        }
+    }
     return ok;
 }
 
@@ -103,7 +124,7 @@ bool FloatTexture::GetImage(QImage &image)
     bool ok = true;
     QColor c;
     FRGBA * fc = nullptr;
-    if (xy.size() < image.size().width() && xy[0].size() < image.size().height())
+    if (yx.size() < image.size().height() && yx[0].size() < image.size().width())
     {
         ok = false;
     }
@@ -113,7 +134,7 @@ bool FloatTexture::GetImage(QImage &image)
         {
             for (int y = 0; y < image.height(); y++)
             {
-                fc = &xy[x][y];
+                fc = &yx[x][y];
                 c.setRgbF(fc->R, fc->G, fc->B, fc->A);
                 image.setPixelColor(x, y, c);
             }
@@ -125,7 +146,19 @@ bool FloatTexture::GetImage(QImage &image)
 
 bool FloatTexture::GetImage(QImage &image, const QRect &area)
 {
-    bool ok = false;
+    bool ok = true;
+    QColor c;
+    FRGBA * fc = nullptr;
+
+    for (int x = area.left(); x < area.right(); x++)
+    {
+        for (int y = area.top(); y < area.bottom(); y++)
+        {
+            fc = &yx[x][y];
+            c.setRgbF(fc->R, fc->G, fc->B, fc->A);
+            image.setPixelColor(x, y, c);
+        }
+    }
     return ok;
 }
 
@@ -136,7 +169,7 @@ void FloatTexture::SetPixelColorInternal(const QColor &c, const QPoint &pos)
             , b = 0.0
             , a =0.0;
     c.getRgbF(&r, &g, &b, &a);
-    xy[pos.x()][pos.y()] = { r, g, b, a };
+    yx[pos.y()][pos.x()] = { r, g, b, a };
     //FRGBA test = xy[pos.x()][pos.y()];
     //r = test.R;
 }

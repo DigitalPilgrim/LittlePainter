@@ -78,6 +78,9 @@ void MainWindow::createActions()
     connect(ui->actionChange_a_Pen_Size, &QAction::triggered, this, &MainWindow::changePenWidth);
     connect(ui->actionPen_Color, &QAction::triggered, this, &MainWindow::changePenColor);
     connect(ui->actionClear_Image, &QAction::triggered, m_cPainter, &Little_Painter::ClearImage);
+    connect(ui->actionBrush_Circle, &QAction::triggered, m_cPainter, &Little_Painter::SetBrushCircle);
+    connect(ui->actionBrush_Texture, &QAction::triggered, m_cPainter, &Little_Painter::SetBrushTexture);
+
 }
 
 void MainWindow::createMenus()
