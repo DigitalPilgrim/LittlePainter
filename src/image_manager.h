@@ -11,6 +11,8 @@ enum class e_imageBrush
     , custom
 };
 
+
+
 class image_manager
 {
     static QString m_resPath;

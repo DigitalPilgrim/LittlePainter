@@ -27,7 +27,15 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionNew"/>
+    <widget class="QMenu" name="menuNew">
+     <property name="title">
+      <string>New</string>
+     </property>
+     <addaction name="actionNew500"/>
+     <addaction name="actionNew1000"/>
+     <addaction name="actionNew4000"/>
+    </widget>
+    <addaction name="menuNew"/>
     <addaction name="actionOpen"/>
     <addaction name="actionSave"/>
     <addaction name="actionSave_As"/>
@@ -36,21 +44,28 @@
     <property name="title">
      <string>Edit</string>
     </property>
+    <widget class="QMenu" name="menuBrush_Texture">
+     <property name="title">
+      <string>Brush Texture</string>
+     </property>
+     <addaction name="actionBrush_Texture_1"/>
+     <addaction name="actionBrush_Texture_2"/>
+     <addaction name="actionBrushCustom"/>
+    </widget>
     <addaction name="actionChange_a_Pen_Size"/>
     <addaction name="actionPen_Color"/>
+    <addaction name="actionBrush_Transparency"/>
+    <addaction name="separator"/>
     <addaction name="actionClear_Image"/>
+    <addaction name="actionClear_Color"/>
+    <addaction name="separator"/>
     <addaction name="actionBrush_Circle"/>
-    <addaction name="actionBrush_Texture"/>
+    <addaction name="menuBrush_Texture"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionNew">
-   <property name="text">
-    <string>New</string>
-   </property>
-  </action>
   <action name="actionOpen">
    <property name="text">
     <string>Open</string>
@@ -68,7 +83,7 @@
   </action>
   <action name="actionChange_a_Pen_Size">
    <property name="text">
-    <string>Change a Pen Size</string>
+    <string>Brush Size</string>
    </property>
   </action>
   <action name="actionClear_Image">
@@ -78,7 +93,7 @@
   </action>
   <action name="actionPen_Color">
    <property name="text">
-    <string>Pen Color</string>
+    <string>Brush Color</string>
    </property>
   </action>
   <action name="actionBrush_Circle">
@@ -86,9 +101,44 @@
     <string>Brush Circle</string>
    </property>
   </action>
-  <action name="actionBrush_Texture">
+  <action name="actionBrush_Transparency">
    <property name="text">
-    <string>Brush Texture</string>
+    <string>Brush Transparency</string>
+   </property>
+  </action>
+  <action name="actionClear_Color">
+   <property name="text">
+    <string>Clear Color</string>
+   </property>
+  </action>
+  <action name="actionNew500">
+   <property name="text">
+    <string>New 500 x 500</string>
+   </property>
+  </action>
+  <action name="actionNew1000">
+   <property name="text">
+    <string>New 1000 x 1000</string>
+   </property>
+  </action>
+  <action name="actionNew4000">
+   <property name="text">
+    <string>New 4000 x 4000</string>
+   </property>
+  </action>
+  <action name="actionBrush_Texture_1">
+   <property name="text">
+    <string>Brush Texture 1</string>
+   </property>
+  </action>
+  <action name="actionBrush_Texture_2">
+   <property name="text">
+    <string>Brush Texture 2</string>
+   </property>
+  </action>
+  <action name="actionBrushCustom">
+   <property name="text">
+    <string>Custom</string>
    </property>
   </action>
  </widget>

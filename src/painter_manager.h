@@ -14,9 +14,11 @@ class painter_manager
     QPoint m_lastPoint;
     QPoint m_measurePoint;
 
-    FloatTexture m_floatTexture;
+    FloatTexture * m_floatTexture = nullptr;
 public:
     painter_manager();
+
+    void setFloatTexture(FloatTexture * ft) { m_floatTexture = ft; }
 
     void draw(QPainter& p, const QPoint& endPoint, QRect& area);
 
@@ -25,6 +27,8 @@ public:
     e_imageBrush ImageBrushSelected() const;
     void Color(QColor value);
     QColor Color() const;
+    void BrushTransparency(const float & value);
+    float BrushTransparency() const;
     void Width(int value);
     int Width() const;
     void set_lastPoint(QPoint & value);
@@ -32,6 +36,7 @@ public:
 
     void Initialize();
 private:
+    void setImageColor();
     void drawPen(QPainter& p, const QPoint& endPoint, QRect& area);
     void drawBrush(QPainter& p, const QPoint& endPoint, QRect& area);
     void drawTextureBrush(QPainter& p, const QPoint& endPoint, QRect& area);

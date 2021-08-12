@@ -2,6 +2,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QDebug>
+#include "file_manager.h"
 // ----------------------------------------------------------------------------------------------------
 QString image_manager::m_resPath;
 
@@ -56,16 +57,33 @@ bool image_manager::loadAsResource(QImage &image, e_imageBrush ib)
     QString fileName = m_resPath;
     switch(ib)
     {
-        case e_imageBrush::texture1: fileName += "texture1.png"; ok = true; break;
-        case e_imageBrush::texture2: fileName += "texture2.png"; ok = true; break;
+        case e_imageBrush::texture1: fileName += "texture1.png"; ok = true; qInfo() << "texture 1 will be selected"; break;
+        case e_imageBrush::texture2: fileName += "texture2.png"; ok = true; qInfo() << "texture 2 will be selected"; break;
         case e_imageBrush::custom: break;
     }
-    if (ok) ok = image.load(fileName);
+    if (ok)
+    {
+        qInfo() << "texture will be selected: " << fileName;
+        //ok = image.load(fileName);
+        QImage img;
+        ok = img.load(fileName);
+        if (ok)
+        {
+            image = img.convertToFormat(QImage::Format_ARGB32_Premultiplied);
+        }
+    }
     else
     {
         if (ib == e_imageBrush::custom)
         {
             // dorobit
+            QImage img;
+            e_file_state fs = file_manager::openImage(img, m_resPath);
+            if (fs == e_file_state::opened || fs == e_file_state::closed)
+            {
+                image = img.convertToFormat(QImage::Format_ARGB32_Premultiplied);
+                ok = true;
+            }
         }
         else
         {

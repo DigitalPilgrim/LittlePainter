@@ -9,23 +9,29 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    file_manager.cpp \
     floattexture.cpp \
     image_manager.cpp \
     little_painter.cpp \
     main.cpp \
     mainwindow.cpp \
     painter_brush.cpp \
-    painter_manager.cpp
+    painter_canvas.cpp \
+    painter_manager.cpp \
+    undo_redo_system.cpp
 
 HEADERS += \
     KolkoCasuSomStravil.h \
+    file_manager.h \
     floattexture.h \
     graphic_helper_functions.h \
     image_manager.h \
     little_painter.h \
     mainwindow.h \
     painter_brush.h \
-    painter_manager.h
+    painter_canvas.h \
+    painter_manager.h \
+    undo_redo_system.h
 
 FORMS += \
     mainwindow.ui
@@ -38,3 +44,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 DISTFILES += \
     Resources/texture1.png \
     Resources/texture2.png
+
+RESOURCES +=
+

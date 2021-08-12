@@ -19,6 +19,15 @@ struct FRGBA
         : R(r), G(g), B(b), A(a) {}
 };
 
+struct DrawArgs
+{
+    QImage * BrushImage = nullptr;
+    QRect Area = QRect(0, 0, 0, 0);
+    DrawArgs() {}
+    DrawArgs(QImage * brushImage, const QRect &area)
+        : BrushImage(brushImage), Area(area) {}
+};
+
 class FloatTexture
 {
     std::vector<std::vector<FRGBA>> yx;
@@ -28,6 +37,8 @@ public:
 
     void Size(const QSize size);
     QSize Size() const;
+
+    void Clear(bool makeTransparent = false);
 
     int Width() const;
     int Height() const;
@@ -39,6 +50,7 @@ public:
     bool SetImage(const QImage& image, const QRect& area);
     bool GetImage(QImage& image);
     bool GetImage(QImage& image, const QRect& area);
+    bool Draw(const DrawArgs & drawArgs); // mozno zbytocne
 
 private:
 

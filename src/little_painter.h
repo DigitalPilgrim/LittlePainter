@@ -15,33 +15,41 @@ class Little_Painter : public QWidget
 public:
     explicit Little_Painter(QWidget *parent = nullptr);
 
-    bool openImage(const QString &fileName);
-    bool saveImage(const QString &fileName, const char* fileFormat);
+    bool openImage(/*const QString &fileName*/);
+    bool saveImage(/*const QString &fileName, const char* fileFormat*/);
+    bool saveImageAs();
     void setPenColor(const QColor &newColor);
     void setPenWidth(int newWidth);
 
     bool isModified() const { return m_modified; }
     QColor penColor() const;
     int penWidth() const;
+
+    void BrushTransparency(const float & value);
+    float BrushTransparency() const;
     void SetBrushType(int value);
     void SetBrushCircle();
     void SetBrushTexture();
+    void SetBrushTexture2();
+    void SetBrushCustom();
+
+    void setImageSizeAndClear(const QSize& size);
 
 public slots:
     void ClearImage();
+    void ClearColor();
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
-    void resizeEvent(QResizeEvent *event) override;
+    //void resizeEvent(QResizeEvent *event) override;
 
 signals:
 
 private:
     void drawLineTo(const QPoint &endPoint);
-    void drawLineToBrush(int &pointsX, int &pointsY, int &posX, int &posY, int& radius, QPainter& painter);
     void resizeImage(QImage* image, const QSize &newSize);
 
     bool m_modified = false;

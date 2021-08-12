@@ -5,6 +5,7 @@
 #include <QMainWindow>
 
 class Little_Painter;
+class painter_canvas;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -20,12 +21,16 @@ public:
 
 private slots:
     void newImage();
+    void newImage500();
+    void newImage1000();
+    void newImage4000();
     void clearImage();
     void open();
     void save();
     void saveAs();
     void changePenColor();
     void changePenWidth();
+    void changeBrushTransparency();
 
 
 private:
@@ -36,7 +41,7 @@ private:
     bool maybeSave();
     bool saveFile(const QByteArray &fileFormat);
 
+    painter_canvas* m_cPainterCanvas;
     Little_Painter * m_cPainter;
-
 };
 #endif // MAINWINDOW_H

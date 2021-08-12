@@ -10,7 +10,8 @@ painter_manager::painter_manager()
     m_brush.push_back(painter_brush(e_brushType::pen));
     m_brush.push_back(painter_brush(e_brushType::circleBrush));
     m_brush.push_back(painter_brush(e_brushType::textureBrush));
-    m_brushType = e_brushType::textureBrush;
+    m_brush[static_cast<int>(e_brushType::circleBrush)].Width = 25;
+    //m_brushType = e_brushType::textureBrush;
 
 }
 
@@ -36,6 +37,9 @@ void painter_manager::BrushType(e_brushType value)
 void painter_manager::ImageBrushSelect(e_imageBrush value)
 {
     m_imageBrush = value;
+    m_brush[static_cast<int>(e_brushType::textureBrush)].ImageBrushSelected = value;
+    loadTexture();
+    setImageColor();
 }
 
 // -------------------------------------------------------------------------------------------------------------------------
@@ -54,19 +58,31 @@ void painter_manager::Color(QColor value)
         m_brush[static_cast<int>(m_brushType)].Color = value;
         if (m_brushType == e_brushType::textureBrush)
         {
-            painter_brush * pb = &m_brush[static_cast<int>(m_brushType)];
-            QPainter p(&pb->Image);
-            p.setCompositionMode(QPainter::CompositionMode::CompositionMode_SourceIn);
-            p.fillRect(pb->Image.rect(), pb->Color);
-            p.end();
+            setImageColor();
         }
 
     }
 }
 
+// -------------------------------------------------------------------------------------------------------------------------
+
 QColor painter_manager::Color() const
 {
     return m_brush[static_cast<int>(m_brushType)].Color;
+}
+
+// -------------------------------------------------------------------------------------------------------------------------
+
+void painter_manager::BrushTransparency(const float &value)
+{
+    m_brush[static_cast<int>(m_brushType)].Alpha = value;
+}
+
+// -------------------------------------------------------------------------------------------------------------------------
+
+float painter_manager::BrushTransparency() const
+{
+    return m_brush[static_cast<int>(m_brushType)].Alpha;
 }
 
 // -------------------------------------------------------------------------------------------------------------------------
@@ -107,11 +123,30 @@ void painter_manager::Initialize()
 
     m_brush[static_cast<int>(e_brushType::textureBrush)].Width = 50;
     loadTexture();
+    setImageColor();
+}
+
+// =========================================================================================================================
+
+void painter_manager::setImageColor()
+{
+    /*
+        Timto sposobom sa zmeni farba textury a nikdy nestrati alfu hodnotu
+    */
     painter_brush * pb = &m_brush[static_cast<int>(e_brushType::textureBrush)];
-    QPainter p(&pb->Image);
-    p.setCompositionMode(QPainter::CompositionMode::CompositionMode_SourceIn);
-    p.fillRect(pb->Image.rect(), pb->Color);
-    p.end();
+    QColor cFromImage;
+    QColor cToImage;
+    QSize imageSize = pb->Image.size();
+    for (int x = 0; x < imageSize.width(); x++)
+    {
+        for (int y = 0; y < imageSize.height(); y++)
+        {
+            cFromImage = pb->Image.pixelColor(x, y);
+            cToImage = pb->Color;
+            cToImage.setAlpha(cFromImage.alpha()); // std::ceil(cFromImage.alpha() * pb->Alpha)
+            pb->Image.setPixelColor(x, y, cToImage);
+        }
+    }
 }
 
 // =========================================================================================================================
@@ -164,6 +199,7 @@ void painter_manager::drawBrush(QPainter &p, const QPoint& endPoint, QRect& area
     */
 
     // nastavenie stetca
+    p.setOpacity(pb->Alpha);
     QColor c(pb->Color);
     //if (m_painting) c.setAlphaF(0.25f);
     p.setPen(Qt::NoPen);
@@ -230,6 +266,7 @@ void painter_manager::drawBrush(QPainter &p, const QPoint& endPoint, QRect& area
                                     , posY -  (radius / 2)
                                     , radius, radius);
                 m_measurePoint = QPoint(posX, posY);
+
             }
         }
 
@@ -276,6 +313,7 @@ void painter_manager::drawTextureBrush(QPainter &p, const QPoint& endPoint, QRec
     ghf::distanceGet(distance, endPoint.x(), m_measurePoint.x(), endPoint.y(), m_measurePoint.y());
 
     // DRAWING
+    p.setOpacity(pb->Alpha);
     if (m_lastPoint != endPoint)
     {
         int pointsX = std::abs(m_lastPoint.x() - endPoint.x());
@@ -304,7 +342,12 @@ void painter_manager::drawTextureBrush(QPainter &p, const QPoint& endPoint, QRec
 
             ghf::distanceGet(distance, m_measurePoint.x(), posX, m_measurePoint.y(), posY);
 
-            if (std::ceil(distance) >= distanceCompare || draw1px)
+            // -------------- Poznamka -----------------------------------------------------------------------
+            // v Debug mode, ak je 1px nastaveny na stalo (teda sa neoptimalizuje) pri rychlom pohybe stetcom
+            // uz nestiha vykreslovat, ale v Release mode to ide svizne stale.
+            // -----------------------------------------------------------------------------------------------
+
+            //if (std::ceil(distance) >= distanceCompare || draw1px)
             {
                 p.drawImage(QPoint(posX -  (radius / 2), posY -  (radius / 2)), pb->Image);
                 m_measurePoint = QPoint(posX, posY);

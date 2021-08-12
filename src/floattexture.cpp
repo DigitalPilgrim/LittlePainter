@@ -9,9 +9,13 @@ FloatTexture::FloatTexture()
 void FloatTexture::Size(const QSize size)
 {
     yx.resize(size.height());
-    for (int x = 0; x < size.height(); x++)
+    for (int y = 0; y < size.height(); y++)
     {
-        yx[x].resize(size.width());
+        yx[y].resize(size.width());
+        for (int x = 0; x < size.width(); x++)
+        {
+            yx[y][x] = { 1.0, 1.0, 1.0, 1.0 };
+        }
     }
     m_size = size;
 }
@@ -19,6 +23,19 @@ void FloatTexture::Size(const QSize size)
 QSize FloatTexture::Size() const
 {
     return m_size;
+}
+
+void FloatTexture::Clear(bool makeTransparent)
+{
+    float a = 1.0f;
+    if (makeTransparent) a = 0.0f;
+    for (int y = 0; y < yx.size(); y++)
+    {
+        for (int x = 0; x < yx[0].size(); x++)
+        {
+            yx[y][x] = { 1.0, 1.0, 1.0, a };
+        }
+    }
 }
 
 int FloatTexture::Width() const
@@ -71,7 +88,7 @@ bool FloatTexture::SetImage(const QImage &image)
     if (image.size() != Size())
     {
         Size(image.size());
-        if (yx.size() < image.size().height() && yx[0].size() < image.size().width())
+        if (yx.size() < image.size().height() || yx[0].size() < image.size().width())
         {
             ok = false;
         }
@@ -134,7 +151,7 @@ bool FloatTexture::GetImage(QImage &image)
         {
             for (int y = 0; y < image.height(); y++)
             {
-                fc = &yx[x][y];
+                fc = &yx[y][x];
                 c.setRgbF(fc->R, fc->G, fc->B, fc->A);
                 image.setPixelColor(x, y, c);
             }
@@ -154,12 +171,17 @@ bool FloatTexture::GetImage(QImage &image, const QRect &area)
     {
         for (int y = area.top(); y < area.bottom(); y++)
         {
-            fc = &yx[x][y];
+            fc = &yx[y][x];
             c.setRgbF(fc->R, fc->G, fc->B, fc->A);
             image.setPixelColor(x, y, c);
         }
     }
     return ok;
+}
+
+bool FloatTexture::Draw(const DrawArgs &drawArgs)
+{
+    return false;
 }
 
 void FloatTexture::SetPixelColorInternal(const QColor &c, const QPoint &pos)
