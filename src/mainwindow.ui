@@ -52,6 +52,9 @@
      <addaction name="actionBrush_Texture_2"/>
      <addaction name="actionBrushCustom"/>
     </widget>
+    <addaction name="actionUndo"/>
+    <addaction name="actionRedo"/>
+    <addaction name="separator"/>
     <addaction name="actionChange_a_Pen_Size"/>
     <addaction name="actionPen_Color"/>
     <addaction name="actionBrush_Transparency"/>
@@ -139,6 +142,16 @@
   <action name="actionBrushCustom">
    <property name="text">
     <string>Custom</string>
+   </property>
+  </action>
+  <action name="actionUndo">
+   <property name="text">
+    <string>Undo</string>
+   </property>
+  </action>
+  <action name="actionRedo">
+   <property name="text">
+    <string>Redo</string>
    </property>
   </action>
  </widget>

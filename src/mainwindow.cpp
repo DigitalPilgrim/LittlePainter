@@ -165,6 +165,14 @@ void MainWindow::createActions()
     connect(ui->actionClear_Image, &QAction::triggered, m_cPainter, &Little_Painter::ClearImage);
     connect(ui->actionClear_Color, &QAction::triggered, m_cPainter, &Little_Painter::ClearColor);
     // -----------------------------------------------------------------------------------------------------
+    // /////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ------------------------------------------------------------------------------------------------------
+    // EDIT
+    // ------------------------------------------------------------------------------------------------------
+    // Undo Redo
+    connect(ui->actionUndo, &QAction::triggered, m_cPainter, &Little_Painter::Undo);
+    connect(ui->actionRedo, &QAction::triggered, m_cPainter, &Little_Painter::Redo);
+    // ------------------------------------------------------------------------------------------------------
     // Brush properties
     connect(ui->actionChange_a_Pen_Size, &QAction::triggered, this, &MainWindow::changePenWidth);
     connect(ui->actionPen_Color, &QAction::triggered, this, &MainWindow::changePenColor);

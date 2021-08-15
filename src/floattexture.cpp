@@ -1,5 +1,5 @@
 #include "floattexture.h"
-
+#include <QtDebug>
 
 FloatTexture::FloatTexture()
 {
@@ -95,9 +95,9 @@ bool FloatTexture::SetImage(const QImage &image)
     }
     if (ok)
     {
-        for (int x = 0; x < image.width(); x++)
+        for (int y = 0; y < image.height(); y++)
         {
-            for (int y = 0; y < image.height(); y++)
+            for (int x = 0; x < image.width(); x++)
             {
                 c = image.pixelColor(x, y);
                 SetPixelColorInternal(c, QPoint(x, y));
@@ -110,8 +110,11 @@ bool FloatTexture::SetImage(const QImage &image)
     return ok;
 }
 
-bool FloatTexture::SetImage(const QImage &image, const QRect &area)
+bool FloatTexture::SetImage(const QImage &image, const QRect &area, bool imageAreaPosZero)
 {
+   /* qInfo() << "SetImage(const QImage &image, const QRect &area) | image.size() "
+            << "w = " << image.size().width()
+            << ", h = " << image.size().height();*/
     bool ok = true;
     QColor c;
 
@@ -120,18 +123,50 @@ bool FloatTexture::SetImage(const QImage &image, const QRect &area)
             , areaY = area.top()
             , areaYmax = area.bottom();
 
+    /*qInfo() << "-- SetImage(image, area imageAreaPosZero) | "
+            << "areaX = " << areaX
+            << "areaY = " << areaY
+            << " | areaXmax = " << areaXmax
+            << "areaYmax = " << areaYmax;*/
+
     if (areaX < 0) areaX = 0;
     if (areaXmax > m_size.width()) areaXmax = m_size.width();
     if (areaY < 0) areaY = 0;
     if (areaYmax > m_size.height()) areaYmax = m_size.height();
 
-    for (int x = areaX; x < areaXmax; x++)
+    /*qInfo() << "-- SetImage(image, area imageAreaPosZero) | "
+            << "areaX = " << areaX
+            << "areaY = " << areaY
+            << " | areaXmax = " << areaXmax
+            << "areaYmax = " << areaYmax;
+    qInfo() << "------------------------------------------";*/
+
+    int iX = areaX
+            , iY = areaY
+            , iYreset = areaY
+            , iXreset = areaX;
+
+    if (imageAreaPosZero)
     {
-        for (int y = areaY; y < areaYmax; y++)
+        iX = 0;
+        iY = 0;
+        iYreset = 0;
+        iXreset = 0;
+    }
+
+    //qInfo() << "iX = " << iX << ", iY = " << iY;
+    //qInfo() << "areaX = " << areaX << ", areaY = " << areaY;
+
+    for (int y = areaY; y < areaYmax; y++)
+    {
+        for (int x = areaX; x < areaXmax; x++)
         {
-            c = image.pixelColor(x, y);
+            c = image.pixelColor(iX, iY);
             SetPixelColorInternal(c, QPoint(x, y));
+            ++iX;
         }
+        ++iY;
+        iX = iXreset;
     }
     return ok;
 }
@@ -147,9 +182,9 @@ bool FloatTexture::GetImage(QImage &image)
     }
     else
     {
-        for (int x = 0; x < image.width(); x++)
+        for (int y = 0; y < image.height(); y++)
         {
-            for (int y = 0; y < image.height(); y++)
+            for (int x = 0; x < image.width(); x++)
             {
                 fc = &yx[y][x];
                 c.setRgbF(fc->R, fc->G, fc->B, fc->A);
@@ -167,7 +202,26 @@ bool FloatTexture::GetImage(QImage &image, const QRect &area)
     QColor c;
     FRGBA * fc = nullptr;
 
-    for (int x = area.left(); x < area.right(); x++)
+    int areaX = area.left()
+            , areaXmax = area.right()
+            , areaY = area.top()
+            , areaYmax = area.bottom();
+
+    if (areaX < 0) areaX = 0;
+    if (areaXmax > m_size.width()) areaXmax = m_size.width();
+    if (areaY < 0) areaY = 0;
+    if (areaYmax > m_size.height()) areaYmax = m_size.height();
+
+    for (int y = areaY; y < areaYmax; y++)
+    {
+        for (int x = areaX; x < areaXmax; x++)
+        {
+            fc = &yx[y][x];
+            c.setRgbF(fc->R, fc->G, fc->B, fc->A);
+            image.setPixelColor(x, y, c);
+        }
+    }
+    /*for (int x = area.left(); x < area.right(); x++)
     {
         for (int y = area.top(); y < area.bottom(); y++)
         {
@@ -175,14 +229,42 @@ bool FloatTexture::GetImage(QImage &image, const QRect &area)
             c.setRgbF(fc->R, fc->G, fc->B, fc->A);
             image.setPixelColor(x, y, c);
         }
-    }
+    }*/
     return ok;
 }
 
-bool FloatTexture::Draw(const DrawArgs &drawArgs)
+void FloatTexture::DrawImageToImage(QImage &drawTo, const QImage &drawFrom, const QRect &area)
+{
+
+}
+
+void FloatTexture::ClearImage(QImage &image, const QRect &area)
+{
+    QColor c;
+    int areaX = area.left()
+            , areaXmax = area.right()
+            , areaY = area.top()
+            , areaYmax = area.bottom();
+
+    if (areaX < 0) areaX = 0;
+    if (areaXmax > m_size.width()) areaXmax = m_size.width();
+    if (areaY < 0) areaY = 0;
+    if (areaYmax > m_size.height()) areaYmax = m_size.height();
+
+    for (int y = areaY; y < areaYmax; y++)
+    {
+        for (int x = areaX; x < areaXmax; x++)
+        {
+            c.setRgb(255, 255, 255, 0);
+            image.setPixelColor(x, y, c);
+        }
+    }
+}
+
+/*bool FloatTexture::Draw(const DrawArgs &drawArgs)
 {
     return false;
-}
+}*/
 
 void FloatTexture::SetPixelColorInternal(const QColor &c, const QPoint &pos)
 {

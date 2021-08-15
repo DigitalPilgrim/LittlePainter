@@ -11,13 +11,19 @@ CONFIG += c++11
 SOURCES += \
     file_manager.cpp \
     floattexture.cpp \
+    graphic_helper_functions.cpp \
     image_manager.cpp \
     little_painter.cpp \
     main.cpp \
     mainwindow.cpp \
     painter_brush.cpp \
+    painter_brush_circle.cpp \
+    painter_brush_debug.cpp \
+    painter_brush_texture.cpp \
     painter_canvas.cpp \
     painter_manager.cpp \
+    undo_redo_basic.cpp \
+    undo_redo_special.cpp \
     undo_redo_system.cpp
 
 HEADERS += \
@@ -29,8 +35,13 @@ HEADERS += \
     little_painter.h \
     mainwindow.h \
     painter_brush.h \
+    painter_brush_circle.h \
+    painter_brush_debug.h \
+    painter_brush_texture.h \
     painter_canvas.h \
     painter_manager.h \
+    undo_redo_basic.h \
+    undo_redo_special.h \
     undo_redo_system.h
 
 FORMS += \
@@ -45,5 +56,5 @@ DISTFILES += \
     Resources/texture1.png \
     Resources/texture2.png
 
-RESOURCES +=
+#RESOURCES +=
 

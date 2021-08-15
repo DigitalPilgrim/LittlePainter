@@ -9,10 +9,16 @@
 #include <QDebug>
 #include <QCoreApplication>
 
+#include "undo_redo_system.h"
+#include "painter_brush_debug.h"
+
 // ----------------------------------------------------------------------------------------------------
 
 Little_Painter::Little_Painter(QWidget *parent) : QWidget(parent)
   , m_image(parent->size(), QImage::Format_RGBA8888_Premultiplied)
+  , m_imageDraw(parent->size(), QImage::Format_RGBA8888_Premultiplied)
+  //, m_imageEmpty(parent->size(), QImage::Format_RGBA8888_Premultiplied)
+  , m_imageRender(&m_image)
 {
     setAttribute(Qt::WA_StaticContents);
     m_floatTexture.Size(parent->size());
@@ -22,6 +28,56 @@ Little_Painter::Little_Painter(QWidget *parent) : QWidget(parent)
     m_painterManager.Initialize();
     m_painterManager.BrushType(e_brushType::circleBrush);
     m_painterManager.Color(Qt::blue);
+
+    /*UndoRedoArgs ura(ghf::AreaPixels(0, 0, m_image.size().width(), m_image.height()), &m_image, &m_floatTexture);
+    undo_redo_system::set(ura, true);*/
+}
+
+// ----------------------------------------------------------------------------------------------------
+
+void Little_Painter::Undo()
+{
+    qInfo() << "UNDO - BEGIN ----------------------------------";
+    using urs = undo_redo_system;
+    //UndoRedoArgs ura(&m_image, &m_floatTexture);
+    ghf::AreaPixels area;
+    UndoRedoSpecialArgs ura(m_imageRender, area);
+    //UndoRedoSpecialArgs ura(&m_image, area);
+    if (urs::undoS(ura))
+    {
+        /*qInfo() << "undo done | Area x = " << ura.Area.Left
+                << ", y = " << ura.Area.Top
+                << ", w = " << ura.Area.Right
+                << ", h = " << ura.Area.Bottom;*/
+
+        //drawBoundingBox(ura.Area);
+        update(/*QRect(ura.Area.Left, ura.Area.Top, ura.Area.Right, ura.Area.Bottom)*/);
+        qInfo() << "UNDO - END ----------------------------------";
+    }
+    qInfo() << "---------------------------------------------";
+}
+
+// ----------------------------------------------------------------------------------------------------
+
+void Little_Painter::Redo()
+{
+    qInfo() << "REDO - BEGIN ----------------------------------";
+    using urs = undo_redo_system;
+    //UndoRedoArgs ura(&m_image, &m_floatTexture);
+    ghf::AreaPixels area;
+    UndoRedoSpecialArgs ura(m_imageRender, area);
+    //UndoRedoSpecialArgs ura(&m_image, area);
+    if (urs::redoS(ura))
+    {
+        /*qInfo() << "undo done | Area x = " << ura.Area.Left
+                << ", y = " << ura.Area.Top
+                << ", w = " << ura.Area.Right
+                << ", h = " << ura.Area.Bottom;*/
+        //drawBoundingBox(ura.Area);
+        update(/*QRect(ura.Area.Left, ura.Area.Top, ura.Area.Right, ura.Area.Bottom)*/);
+        qInfo() << "REDO - END ----------------------------------";
+    }
+    qInfo() << "---------------------------------------------";
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -39,6 +95,9 @@ bool Little_Painter::openImage(/*const QString &fileName*/)
         m_image = img.convertToFormat(QImage::Format_RGBA8888_Premultiplied);
         m_modified = false;
         update();
+
+        undo_redo_system::setS(UndoRedoSpecialSetIniArgs(m_image.size()));
+        undo_redo_system::setSBegin(UndoRedoSpecialBeginArgs(&m_image));
         return true;
     }
     else if (fs == e_file_state::error) return false;
@@ -166,18 +225,36 @@ void Little_Painter::SetBrushCustom()
 
 void Little_Painter::setImageSizeAndClear(const QSize &size)
 {
-    m_image.fill(QColor(255, 255, 255, 255));
-    m_floatTexture.Size(size);
     resizeImage(&m_image, size);
+    resizeImage(&m_imageDraw, size);
+    //resizeImage(&m_imageEmpty, size);
+    QColor Fill = QColor(255, 255, 255, 255);
+    m_image.fill(Fill);
+    m_imageDraw.fill(QColor(255, 255, 255, 255));
+    //m_imageDraw.fill(QColor(255, 255, 255, 0));
+    //m_imageEmpty.fill(QColor(255, 255, 255, 0));
+    m_floatTexture.Size(size);
+
+    undo_redo_system::setS(UndoRedoSpecialSetIniArgs(m_image.size()));
+    undo_redo_system::setSBegin(UndoRedoSpecialBeginArgs(&Fill));
+    update();
 }
 
 // ----------------------------------------------------------------------------------------------------
 
 void Little_Painter::ClearImage()
 {
-    m_image.fill(QColor(255, 255, 255, 255));
+    QColor Fill = QColor(255, 255, 255, 255);
+    m_image.fill(Fill);
+    m_imageDraw.fill(Fill);
+    //m_imageDraw.fill(QColor(255, 255, 255, 0));
+   // m_imageEmpty.fill(QColor(255, 255, 255, 0));
     m_floatTexture.Clear();
     m_modified = true;
+
+    undo_redo_system::setS(UndoRedoSpecialSetIniArgs(m_image.size()));
+    undo_redo_system::setSBegin(UndoRedoSpecialBeginArgs(&Fill));
+
     update();
 }
 
@@ -185,9 +262,15 @@ void Little_Painter::ClearImage()
 
 void Little_Painter::ClearColor()
 {
-    m_image.fill(QColor(255, 255, 255, 0));
+    QColor Fill = QColor(255, 255, 255, 0);
+    m_image.fill(Fill);
+    m_imageDraw.fill(Fill);
+    m_imageDraw.fill(Fill);
     m_floatTexture.Clear(true);
     m_modified = true;
+
+    undo_redo_system::setS(UndoRedoSpecialSetIniArgs(m_image.size()));
+    undo_redo_system::setSBegin(UndoRedoSpecialBeginArgs(&Fill));
     update();
 }
 
@@ -202,8 +285,12 @@ void Little_Painter::mousePressEvent(QMouseEvent *event)
         m_lastPoint = event->pos();
         m_measurePoint = event->pos();
         m_firstHit = true;
+        qInfo() << "- mousePressEvent()";
+        //debug_paint_brush(m_painterManager.GetBrush());
+        undo_redo_system::setSBegin(UndoRedoSpecialBeginArgs(m_painterManager.GetBrush(), &m_lastPoint));
         drawLineTo(event->pos());
         m_painting = true;
+        ghf::areaSet(m_drawedArea, m_storedArea);
     }
 }
 
@@ -213,6 +300,7 @@ void Little_Painter::mouseMoveEvent(QMouseEvent *event)
 {
     if ((event->buttons() & Qt::LeftButton) && m_painting)
     {
+        //m_imageRender = &m_imageDraw;
         drawLineTo(event->pos());
     }
 }
@@ -223,8 +311,14 @@ void Little_Painter::mouseReleaseEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton && m_painting)
     {
-        //drawLineTo(event->pos());
+        ghf::areaMax(m_drawedArea, m_image.size());
         m_painting = false;
+        //drawBoundingBox();
+        undo_redo_system::setSEnd(UndoRedoSpecialEndArgs(m_drawedArea));
+        /*UndoRedoArgs ura(m_drawedArea, &m_image, &m_floatTexture);
+        undo_redo_system::set(ura);*/
+        ghf::areaReset(m_drawedArea);
+
     }
 }
 
@@ -233,8 +327,11 @@ void Little_Painter::mouseReleaseEvent(QMouseEvent *event)
 void Little_Painter::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
+    //painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
     QRect dRect = event->rect();
-    painter.drawImage(dRect, m_image, dRect);
+    //painter.drawImage(dRect, m_image, dRect);
+    //painter.drawImage(dRect, m_imageDraw, dRect); m_imageRender
+    painter.drawImage(dRect, *m_imageRender, dRect);
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -258,36 +355,63 @@ void Little_Painter::resizeEvent(QResizeEvent *event)
 
 void Little_Painter::drawLineTo(const QPoint &endPoint)
 {
-    QPainter painter(&m_image);
+    //QPainter painter(&m_imageDraw);// m_imageRender
+    //QPainter painter(&m_image);
+    QPainter painter(m_imageRender);
     painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     QRect area;
 
-    m_painterManager.set_lastPoint(m_lastPoint);
-    m_painterManager.set_measurePoint(m_measurePoint);
-    m_painterManager.draw(painter, endPoint, area);
-    if (m_floatTexture.SetImage(m_image, area) == false)
+    m_painterManager.draw(DrawManagerArgs(&painter, &endPoint, &area, &m_lastPoint, &m_measurePoint)); // painter, endPoint, area
+
+    m_storedArea = ghf::AreaPixels(area.top(), area.left(), area.width(), area.height());
+    m_storedArea.LeftA = area.left();
+    m_storedArea.TopA = area.top();
+    m_storedArea.RightA = area.right();
+    m_storedArea.BottomA = area.bottom();
+
+    ghf::areaAddA(m_drawedArea, m_storedArea);
+    /*if (painter.end())
+    {
+        if (painter.begin(&m_image))
+        {
+            painter.drawImage(area, m_imageDraw, area);
+            painter.end();
+            m_floatTexture.ClearImage(m_imageDraw, area);
+        }
+        //drawBoundingBox();
+    }*/
+    /*if (m_floatTexture.SetImage(m_image, area) == false)
     {
         QMessageBox::warning(this, "Warning", "Image was not copied");
-    }
+    }*/
     update(area);
+    undo_redo_system::setSActive(UndoRedoSpecialActiveArgs(&m_lastPoint));
     m_lastPoint = endPoint;
+}
+
+void Little_Painter::drawBoundingBox()
+{
+    QPainter painter(m_imageRender);
+    painter.setPen(QColor(255, 128, 0, 255));
+    ghf::AreaPixels * ap = &m_drawedArea; // m_drawedArea
+    QRect a = QRect(ap->Left, ap->Top, ap->Right, ap->Bottom);
+    painter.drawRect(QRect(ap->Left , ap->Top , ap->Right -1, ap->Bottom -1));
+    update(a);
+}
+
+void Little_Painter::drawBoundingBox(const graphic_helper_functions::AreaPixels area)
+{
+    QPainter painter(m_imageRender);
+    painter.setPen(QColor(255, 128, 0, 255));
+   // QRect a = QRect(area.Left, area.Top, area.Right, area.Bottom);
+    painter.drawRect(QRect(area.Left , area.Top , area.Right -1, area.Bottom -1));
+    //update(a);
 }
 
 // ----------------------------------------------------------------------------------------------------
 
 void Little_Painter::resizeImage(QImage *image, const QSize &newSize)
 {
-    /*if (image->size() == newSize)
-    {
-        return;
-    }*/
-
-    //QImage nImage(newSize, QImage::Format_RGB32);
     QImage nImage(newSize, QImage::Format_RGBA8888_Premultiplied);
-    nImage.fill(QColor(255, 255, 255, 255));
-    //nImage.fill(qRgb(255, 255, 255));
-    /*QPainter painter(&nImage);
-    painter.drawImage(QPoint(0, 0), *image);*/
     *image = nImage;
-    update();
 }

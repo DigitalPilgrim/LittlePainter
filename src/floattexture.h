@@ -19,14 +19,14 @@ struct FRGBA
         : R(r), G(g), B(b), A(a) {}
 };
 
-struct DrawArgs
+/*struct DrawArgs
 {
     QImage * BrushImage = nullptr;
     QRect Area = QRect(0, 0, 0, 0);
     DrawArgs() {}
     DrawArgs(QImage * brushImage, const QRect &area)
         : BrushImage(brushImage), Area(area) {}
-};
+};*/
 
 class FloatTexture
 {
@@ -47,10 +47,12 @@ public:
     bool SetPixelColor(const float& r, const float& g, const float& b, const float& a, const QPoint& pos);
 
     bool SetImage(const QImage& image);
-    bool SetImage(const QImage& image, const QRect& area);
+    bool SetImage(const QImage& image, const QRect& area, bool imageAreaPosZero = false);
     bool GetImage(QImage& image);
     bool GetImage(QImage& image, const QRect& area);
-    bool Draw(const DrawArgs & drawArgs); // mozno zbytocne
+    void DrawImageToImage(QImage& drawTo, const QImage& drawFrom, const QRect& area);
+    void ClearImage(QImage& image, const QRect& area);
+    //bool Draw(const DrawArgs & drawArgs); // mozno zbytocne
 
 private:
 

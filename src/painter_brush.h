@@ -3,7 +3,10 @@
 
 #include <QImage>
 #include <QPainter>
+#include <QPoint>
 #include "image_manager.h"
+#include "graphic_helper_functions.h"
+#include <vector>
 
 enum class e_brushType
 {
@@ -15,8 +18,58 @@ enum class e_brushType
 
 // =============================================================================
 
+struct DrawManagerArgs
+{
+    QPainter * Painter = nullptr;
+    const QPoint * EndPoint = nullptr;
+    QRect * Area = nullptr;
+    QImage * DrawArea = nullptr; // zatial zbytocne
+
+    QPoint * LastPoint = nullptr;
+    QPoint * MeasurePoint = nullptr;
+
+    ghf::AreaPixels * PixelArea = nullptr;
+
+    DrawManagerArgs(QPainter * painter, const QPoint * endPoint, QRect * area, QImage * drawArea = nullptr)
+        : Painter(painter), EndPoint(endPoint), Area(area), DrawArea(drawArea)
+    {}
+
+    DrawManagerArgs(QPainter * painter
+                    , const QPoint * endPoint
+                    , QRect * area
+                    , QPoint * lastPoint
+                    , QPoint * measurePoint
+                    , QImage * drawArea = nullptr)
+        : Painter(painter)
+        , EndPoint(endPoint)
+        , Area(area)
+        , DrawArea(drawArea)
+        , LastPoint(lastPoint)
+        , MeasurePoint(measurePoint)
+    {}
+
+    DrawManagerArgs(QPainter * painter
+                    , const QPoint * endPoint
+                    , QRect * area
+                    , QPoint * lastPoint
+                    , QPoint * measurePoint
+                    , ghf::AreaPixels * pixelArea
+                    , QImage * drawArea = nullptr)
+        : Painter(painter)
+        , EndPoint(endPoint)
+        , Area(area)
+        , DrawArea(drawArea)
+        , LastPoint(lastPoint)
+        , MeasurePoint(measurePoint)
+        , PixelArea(pixelArea)
+    {}
+};
+
+// =============================================================================
+
 struct painter_brush
 {
+    //std::vector<std::vector<int>> OriginalImageAlpha;
     QImage Image;
     QColor Color = QColor(128, 128, 128, 255);
     int Width = 1;
@@ -26,9 +79,36 @@ struct painter_brush
 
     painter_brush() {}
     painter_brush(e_brushType value) : Type(value) {}
+    virtual ~painter_brush() {}
+
+    void set(const painter_brush * pb);
+
+    virtual void draw(const DrawManagerArgs& args) {}
+    virtual void setImageColor(const QColor &value) {}
+    virtual void setImageAlpha(const float &alpha) {}
 };
 
+// =============================================================================
 
+class PainterBrushHolder
+{
+    painter_brush * pb = nullptr;
+public:
+    PainterBrushHolder(const PainterBrushHolder& pbh);
+    PainterBrushHolder(painter_brush * painterBrush);
+    ~PainterBrushHolder();
+    void set(painter_brush * painterBrush);
+private:
+    bool create(painter_brush * painterBrush);
+public:
+    bool isLive() const { if (pb != nullptr) return true; else return false; }
+    void draw(const DrawManagerArgs& args);
+    void setImageColor(const QColor & value);
+    painter_brush * Brush() { return pb; };
+    void release();
+};
+
+// =============================================================================
 
 
 #endif // PAINTER_BRUSH_H
