@@ -628,10 +628,11 @@ void undo_redo_special::setCache()
         if (canvasPos > 0) std::advance(it, canvasPos);
         if (m_activeCanvasCache->ID != it->ID)
         {
-            it->Canvas = m_activeCanvasCache->Canvas;
             m_activeCanvasCache->Canvas = QImage();
-            m_activeCanvasCache->Cached = true;
             m_activeCanvasCache = &(*it);
+            UndoRedoFileArgs args = UndoRedoFileArgs(&m_activeCanvasCache->Canvas, m_activeCanvasCache->ID);
+            m_fileCache.get_from_cache(args, cacheType::canvas); //
+            m_activeCanvasCache->Cached = true;
         }
         else //if (m_activeCanvasCache->ID == it->ID)
         {
@@ -642,23 +643,43 @@ void undo_redo_special::setCache()
 
         m_canvas_cache_pos = m_activeCanvasCache->ID;
 
-        qInfo() << "-- CANVAS CACHE | NASTAVENE NA ID = " << m_activeCanvasCache->ID << " | canvasPos = " << canvasPos;
+        std::string canvasCahced = "false";
+        if (m_activeCanvasCache->Cached) canvasCahced = "true";
+        qInfo() << "-- CANVAS CACHE | NASTAVENE NA ID = " << m_activeCanvasCache->ID << " | canvasPos = " << canvasPos
+                << " | canvasCahced = " << canvasCahced.c_str();
         // -----------------------------------------------------------------------
         // vyresetovat cache ak je potrebne
         if ((m_activeCanvasCache->ID -1) < m_historyCanvasCache.size())
         {
-            for (CanvasHistory & ch : m_historyCanvasCache)
+            std::list<CanvasHistory>::iterator cit = m_historyCanvasCache.begin();
+            int citPos = m_activeCanvasCache->ID -1;
+            if (citPos > 0) std::advance(cit, citPos);
+            while (cit != m_historyCanvasCache.end())
+            {
+                if (cit->ID <= m_activeCanvasCache->ID)
+                {
+                    ++cit;
+                }
+                else
+                {
+                     qInfo() << "-- CANVAS CACHE | ID = " << cit->ID << " will be deleted";
+                    cit = m_historyCanvasCache.erase(cit);
+                }
+            }
+            /*for (CanvasHistory & ch : m_historyCanvasCache)
             {
                 if (ch.ID > m_activeCanvasCache->ID)
                 {
                     ch.Cached = false;
                     qInfo() << "-- CANVAS CACHE | ID = " << ch.ID << " cache reset";
                 }
-            }
+            }*/
         }
 
         // -----------------------------------------------------------------------
         // vytvorit aby dokreslilo spatne 10 tahov dozadu na platno
+        // !!! ZBYTOCNE !!!
+        // ale pre istotu to zatial necham tu
         //if (m_canvas_cache <= MAX_CANVAS_CACHE)
         // mozno nepotrebne
         /*int drawPos = (m_canvas_cache - MAX_CANVAS_CACHE);

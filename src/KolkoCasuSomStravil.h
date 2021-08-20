@@ -107,29 +107,34 @@
     Stvrtok: 21:40 - 23:00  | 80m (1h 20m)
 
     --------------------------------
-    Stvrtok dokopy:
+    Stvrtok dokopy:         | 466m (7h 46min)
 
     ================================
 
     Piatok: 10:00 - 13:24   | 204m (3h 24m)
+    Piatok: 18:00 - 19:00   | 60m (1h)
 
     --------------------------------
-    Piatok dokopy:
+    Piatok dokopy:          | 264m (4h 24min)
 
     ======================================================
 
-
-    // vytvorit aby dokreslilo spatne 10 tahov dozadu na platno v undo_redo_special::setCache()
-
     undo redo                   - z casti hotovo
-    do pamate a neskor do disku - nakoniec inak
+    do pamate a neskor do disku - hotovo
 
     vymena textury      - hotovo
-    a opena  save image - hotovo
+    a opena  save image - hotovo / ale momentalne to nemusi fungovat (nepouzivam uz floattexturu)
 
-    spravit casovac pri tahoch stetca - napad
+    spravit casovac pri tahoch stetca -
     spravit timre kolko trva undo, redo atd...
-    pre viac vlakien viac QImage na vlakno
+    pre viac vlakien viac QImage na vlakno - nerobit mnohovlakno
+
+    komprimovat obrazok - RLE typ
+    kniznica na kompresiu
+    casy kolko trva:
+        - na disk
+        - do pamate
+        -  atd..
 
 
 */

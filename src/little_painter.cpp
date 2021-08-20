@@ -53,7 +53,7 @@ void Little_Painter::Undo()
                 << ", w = " << ura.Area.Right
                 << ", h = " << ura.Area.Bottom;*/
 
-        drawBoundingBox(ura.Area);
+        //drawBoundingBox(ura.Area);
         update(QRect(ura.Area.Left, ura.Area.Top, ura.Area.Right, ura.Area.Bottom));
         qInfo() << "UNDO - END ----------------------------------";
     }
@@ -316,7 +316,7 @@ void Little_Painter::mouseReleaseEvent(QMouseEvent *event)
     {
         ghf::areaMax(m_drawedArea, m_image.size());
         m_painting = false;
-        drawBoundingBox(m_drawedArea);
+        //drawBoundingBox(m_drawedArea); // - zobrazi bounging box pre celkovy tah stetca
         undo_redo_system::setSEnd(UndoRedoSpecialEndArgs(m_drawedArea, m_imageRender));
         /*UndoRedoArgs ura(m_drawedArea, &m_image, &m_floatTexture);
         undo_redo_system::set(ura);*/
