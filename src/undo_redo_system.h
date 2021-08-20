@@ -15,7 +15,7 @@
 /* =================================================================================
  * /////////////////////////////////////////////////////////////////////////////////
  * ---------------------------------------------------------------------------------
- * UNDO REDO - ZATIAL LEN PAMAT
+ * UNDO REDO
  * ---------
  * =================================================================================
  * */
@@ -26,7 +26,11 @@ class undo_redo_system
     static undo_redo_special m_urSpecial;
     undo_redo_system();
 public:
+
+    static void setFileCachePath(const QString& path);
+
     // BASIC
+    // zakladny undo redo NEPOZIVA SA
     static bool undo(UndoRedoArgs & ura);
     static bool redo(UndoRedoArgs & ura);
     static bool set(const UndoRedoArgs & ura, bool initialize = false);
@@ -34,8 +38,9 @@ public:
     static bool availableUndo();
 
     // SPECIAL
-    static bool undoS(const UndoRedoSpecialArgs& args);
-    static bool redoS(const UndoRedoSpecialArgs& args);
+    // undo redo s ukladanim tahov, casti tahov ako obrazok a ukladanie do suborov
+    static bool undoS(UndoRedoSpecialArgs& args);
+    static bool redoS(UndoRedoSpecialArgs& args);
 
     static bool setS(const UndoRedoSpecialSetIniArgs &args);
     static bool setSBegin(const UndoRedoSpecialBeginArgs &args);

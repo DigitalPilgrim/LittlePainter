@@ -13,6 +13,11 @@ undo_redo_system::undo_redo_system()
 
 }
 
+void undo_redo_system::setFileCachePath(const QString &path)
+{
+    m_urSpecial.setFileCachePath(path.toStdString());
+}
+
 // --------------------------------------------------------------------------------------------------------
 
 bool undo_redo_system::undo(UndoRedoArgs &ura)
@@ -56,12 +61,12 @@ bool undo_redo_system::availableUndo()
 // SPECIAL
 // ========================================================================================================
 
-bool undo_redo_system::undoS(const UndoRedoSpecialArgs &args)
+bool undo_redo_system::undoS(UndoRedoSpecialArgs &args)
 {
     return m_urSpecial.undo(args);
 }
 
-bool undo_redo_system::redoS(const UndoRedoSpecialArgs &args)
+bool undo_redo_system::redoS(UndoRedoSpecialArgs &args)
 {
    return m_urSpecial.redo(args);
 }

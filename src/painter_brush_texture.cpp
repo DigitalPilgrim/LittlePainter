@@ -85,7 +85,7 @@ void painter_brush_texture::draw(const DrawManagerArgs &args)
         //m_firstHit = false;
     }
 
-    args.Painter->setOpacity(1.0f);
+    //args.Painter->setOpacity(1.0f);
 
     int rad = (pb->Width / 2.0) + 2;
     *args.Area = QRect(QRect(*args.LastPoint, *args.EndPoint).normalized().adjusted(-rad, -rad, +rad, +rad));

@@ -23,6 +23,7 @@ SOURCES += \
     painter_canvas.cpp \
     painter_manager.cpp \
     undo_redo_basic.cpp \
+    undo_redo_file.cpp \
     undo_redo_special.cpp \
     undo_redo_system.cpp
 
@@ -40,7 +41,9 @@ HEADERS += \
     painter_brush_texture.h \
     painter_canvas.h \
     painter_manager.h \
+    timer.h \
     undo_redo_basic.h \
+    undo_redo_file.h \
     undo_redo_special.h \
     undo_redo_system.h
 

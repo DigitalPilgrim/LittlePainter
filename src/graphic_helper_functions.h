@@ -73,6 +73,11 @@ namespace graphic_helper_functions
 
     /*inline*/ void areaReset(AreaPixels & area);
 
+    // return:
+    // true = area collide with compareTo
+    // false = area is outside compareTo
+    bool areaCollide(AreaPixels & area, const AreaPixels & compareTo);
+
     // reduced = AreaPixels ktora sa porovnava s compraed a ked jedna zo stran presahuje stranu z compared
     // reduced bude redukovana na compared.
     // pouziva sa na to, aby area nepresiahla velkost platna, nieco ako

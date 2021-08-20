@@ -125,6 +125,15 @@ namespace graphic_helper_functions
         //qInfo() << "-- areaMax()";
     }
 
+    bool areaCollide(AreaPixels &area, const AreaPixels &compareTo)
+    {
+        if (area.Left < compareTo.Left)
+        {
+
+        }
+        return false;
+    }
+
 
 
 

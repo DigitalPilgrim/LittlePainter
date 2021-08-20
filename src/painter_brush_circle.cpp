@@ -134,7 +134,7 @@ void painter_brush_circle::draw(const DrawManagerArgs &args)
     }
 
     //m_modified = true;
-    args.Painter->setOpacity(1.0f);
+    //args.Painter->setOpacity(1.0f);
 
     int rad = (pb->Width / 2.0) + 2;
     //QRect r = QRect(QRect(*args.LastPoint, *args.EndPoint).normalized().adjusted(-rad, -rad, +rad, +rad));

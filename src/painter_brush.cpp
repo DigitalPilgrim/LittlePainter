@@ -14,9 +14,9 @@ void painter_brush::set(const painter_brush *pb)
     Type = pb->Type;
     //OriginalImageAlpha = pb->OriginalImageAlpha;
     ImageBrushSelected = pb->ImageBrushSelected;
-    qInfo() << "-- painter_brush::set() ----------------";
+    /*qInfo() << "-- painter_brush::set() ----------------";
     debug_paint_brush(this);
-    qInfo() << "----------------------------------------";
+    qInfo() << "----------------------------------------";*/
 }
 
 PainterBrushHolder::PainterBrushHolder(const PainterBrushHolder &pbh)
