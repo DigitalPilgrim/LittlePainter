@@ -64,7 +64,7 @@ public:
 
         if (miliSeconds < 100) sMiliSeconds += "0";
         if (miliSeconds < 10)  sMiliSeconds += "0";
-        sMiliSeconds = std::to_string(miliSeconds);
+        sMiliSeconds += std::to_string(miliSeconds);
 
         ull nsRange = 100000;
         while (nsRange > 1)
@@ -72,7 +72,7 @@ public:
             if (nanoSeconds < nsRange) sNanoSeconds += "0";
             nsRange = nsRange / 10;
         }
-        sNanoSeconds = std::to_string(nanoSeconds);
+        sNanoSeconds += std::to_string(nanoSeconds);
 
         sNanoSeconds.insert(3, " ");
         // vysledok = [ 1 s | 000 ms | 000 123 ns ]
