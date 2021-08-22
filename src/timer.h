@@ -37,14 +37,52 @@ public:
     {
         using namespace std::chrono;
         if (stopped)
-            return duration_cast<milliseconds>(tpStop - tpStart).count();
+            return duration_cast<nanoseconds>(tpStop - tpStart).count();
         else return 0;
     }
 
-    void Get(QString & getTime)
+    void Get(QString & getTime, const unsigned long long &time = 0)
     {
-        std::string text = std::to_string(Get());
-        getTime.fromStdString(text);
+        using ull = unsigned long long;
+        ull nanoSeconds = 0; // Get()
+        if (time > 0)
+        {
+            nanoSeconds = time;
+        }
+        else nanoSeconds = Get();
+        long double sc = 1000000000.0; // sekund z nanosecond
+        long double ms = 1000000; // milisekund z  nanosecond
+        ull seconds = std::floor(static_cast<long double>(nanoSeconds) / sc);
+        ull miliSeconds = std::floor(static_cast<long double>(nanoSeconds) / ms);
+
+        miliSeconds = miliSeconds - (seconds * 1000);
+        nanoSeconds = nanoSeconds - ((seconds * sc) + (miliSeconds * ms));
+
+        std::string sSeconds = std::to_string(seconds);
+        std::string sMiliSeconds = "";
+        std::string sNanoSeconds = "";
+
+        if (miliSeconds < 100) sMiliSeconds += "0";
+        if (miliSeconds < 10)  sMiliSeconds += "0";
+        sMiliSeconds = std::to_string(miliSeconds);
+
+        ull nsRange = 100000;
+        while (nsRange > 1)
+        {
+            if (nanoSeconds < nsRange) sNanoSeconds += "0";
+            nsRange = nsRange / 10;
+        }
+        sNanoSeconds = std::to_string(nanoSeconds);
+
+        sNanoSeconds.insert(3, " ");
+        // vysledok = [ 1 s | 000 ms | 000 123 ns ]
+        std::string vysledok = "[ "
+                        + sSeconds + " s | "
+                        + sMiliSeconds + " ms | "
+                        + sNanoSeconds + " ns" + " ]";
+        //std::string text = std::to_string(Get());
+
+        getTime = QString::fromStdString(vysledok);
     }
 
     void GetStop(QString & getTime)

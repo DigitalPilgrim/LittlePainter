@@ -3,11 +3,13 @@
 #include "painter_brush_debug.h"
 #include "graphic_helper_functions.h"
 
+#include "timer_manager.h"
+
 // ----------------------------------------------------------------------------------------------------------------
 
 undo_redo_special::undo_redo_special()
 {
-
+    m_fileCache.compress(true);
 }
 
 // ----------------------------------------------------------------------------------------------------------------
@@ -773,8 +775,15 @@ void undo_redo_special::setCache()
                         // do platna
                         if (m_activeCanvasCache->Cached == false)
                         {
-                            qInfo() << "-- DRAW TO CACHE FROM IMAGE | TRUE ID = " << dh.ID;
+                            timer_manager::start();
                             p.drawImage(QRect(dh.Area.Left, dh.Area.Top, dh.Area.Right, dh.Area.Bottom), dh.StoredImage);
+                            timer_manager::stop();
+                            QString time;
+                            timer_manager::get_time(time);
+                            timer_manager::reset();
+
+                            qInfo() << "-- DRAW TO CACHE FROM IMAGE | TRUE ID = " << dh.ID
+                                    << " | TIME | " << time;
                         }
                         m_fileCache.set_to_cache(UndoRedoFileArgs(&dh.StoredImage, dh.ID));
                         dh.StoredImage = QImage();
@@ -786,7 +795,8 @@ void undo_redo_special::setCache()
                         // ...
                         if (m_activeCanvasCache->Cached == false)
                         {
-                            qInfo() << "-- DRAW TO CACHE FROM ACTION | TRUE ID = " << dh.ID;
+                            timer_manager::start();
+
                             QPoint lastPoint = dh.Moves.front();
                             QPoint measurePoint = dh.Moves.front();
                             for ( QPoint & point : dh.Moves)
@@ -796,6 +806,14 @@ void undo_redo_special::setCache()
                                 dh.Draw.draw(args);
                                 lastPoint = point;
                             }
+
+                            timer_manager::stop();
+                            QString time;
+                            timer_manager::get_time(time);
+                            timer_manager::reset();
+
+                            qInfo() << "-- DRAW TO CACHE FROM ACTION | TRUE ID = " << dh.ID
+                                    << " | TIME | " << time;
                         }
                         dh.Cached = true;
                     }
@@ -1005,6 +1023,7 @@ bool undo_redo_special::setEnd(const UndoRedoSpecialEndArgs &args)
     bool ok = false;
     if (m_historyActive != nullptr)
     {
+        timer_manager::start();
         m_historyActive->Area = args.Area;
         if (m_draw_moves >= 0) // m_draw_moves >= m_draw_moves_MAX
         {
@@ -1028,8 +1047,12 @@ bool undo_redo_special::setEnd(const UndoRedoSpecialEndArgs &args)
             }
         }
         m_draw_moves = 0;
-
+        timer_manager::stop();
         qInfo() << "setEnd(args) | exit true | id = " << m_historyActive->ID;
+        QString time = "";
+        timer_manager::get_time(time);
+        timer_manager::reset();
+        qInfo() << "-- [ UNDO REDO SET " << time << " ]";
         m_historyActive = nullptr;
         ok = true;
     }

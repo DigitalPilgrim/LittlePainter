@@ -31,6 +31,7 @@ class undo_redo_file
     const std::string m_fileExtension = ".cache";
     std::string m_path;
     int m_IDpos = 0;
+    bool m_compress = false;
 public:
     undo_redo_file();
     ~undo_redo_file();
@@ -44,6 +45,9 @@ public:
     bool openCanvas(std::fstream& stream, const int & pos, bool rewrite = false);
     bool close();
     bool close(std::fstream& stream);
+
+    void compress(bool compressTrue) { m_compress = compressTrue; }
+    bool isCompressing() const { return m_compress; }
 
     bool set_to_cache(const UndoRedoFileArgs& args, cacheType ct = cacheType::action);
     bool get_from_cache(UndoRedoFileArgs& args, cacheType ct = cacheType::action);

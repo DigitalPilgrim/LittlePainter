@@ -12,6 +12,8 @@
 #include "undo_redo_system.h"
 #include "painter_brush_debug.h"
 
+#include "timer_manager.h"
+
 // ----------------------------------------------------------------------------------------------------
 
 Little_Painter::Little_Painter(QWidget *parent) : QWidget(parent)
@@ -291,7 +293,12 @@ void Little_Painter::mousePressEvent(QMouseEvent *event)
         qInfo() << "- mousePressEvent()";
         //debug_paint_brush(m_painterManager.GetBrush());
         undo_redo_system::setSBegin(UndoRedoSpecialBeginArgs(m_painterManager.GetBrush(), &m_lastPoint));
+
+        timer_manager::reset();
+        timer_manager::start();
         drawLineTo(event->pos());
+        timer_manager::stop();
+
         m_painting = true;
         ghf::areaSet(m_drawedArea, m_storedArea);
     }
@@ -304,7 +311,9 @@ void Little_Painter::mouseMoveEvent(QMouseEvent *event)
     if ((event->buttons() & Qt::LeftButton) && m_painting)
     {
         //m_imageRender = &m_imageDraw;
+        timer_manager::start();
         drawLineTo(event->pos());
+        timer_manager::stop();
     }
 }
 
@@ -314,6 +323,10 @@ void Little_Painter::mouseReleaseEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton && m_painting)
     {
+        QString time = "";
+        timer_manager::get_time(time);
+        timer_manager::reset();
+        qInfo() << "-- [ DRAW TIME = " << time << " ]";
         ghf::areaMax(m_drawedArea, m_image.size());
         m_painting = false;
         //drawBoundingBox(m_drawedArea); // - zobrazi bounging box pre celkovy tah stetca

@@ -3,6 +3,11 @@
 #include <QDebug>
 #include <filesystem>
 
+#include <snappy-c.h>
+//#include <snappy.h>
+
+#include "timer_manager.h"
+
 // ==============================================================================================================
 
 undo_redo_file::undo_redo_file()
@@ -266,6 +271,7 @@ bool undo_redo_file::set_to_cache(const UndoRedoFileArgs &args, cacheType ct)
 
     if (opened)
     {
+        bool ok = false;
         qInfo() << "-- cache file OPEN | set_to_cache | opened";
         if (args.Image != nullptr)
         {
@@ -285,25 +291,127 @@ bool undo_redo_file::set_to_cache(const UndoRedoFileArgs &args, cacheType ct)
             cache.write((char*)&height, sizeof(int32_t));
             cache.write((char*)&bits, sizeof(uint64_t));
 
-            QColor c; uint8_t R = 0; uint8_t G = 0; uint8_t B = 0; uint8_t A = 0;
-
-
-            for (int y = 0; y < args.Image->size().height(); y++)
+            // COMPRESSION ---------------------------------------------------------
+            if (m_compress) // ---------- use COMPRESSOR
             {
-                for (int x = 0; x < args.Image->size().width(); x++)
+                QColor c;
+
+                unsigned long long compressTotalTime = 0;
+                timer_manager::start();
+
+                const size_t originalSIZE = (args.Image->size().width() * args.Image->size().height() * 4 );
+                size_t compressSIZE = originalSIZE * 2; // * 2
+                char * original = new char[originalSIZE];
                 {
-                    c = args.Image->pixelColor(x,y);
-                    R = c.red();
-                    G = c.green();
-                    B = c.blue();
-                    A = c.alpha();
-                    cache.write((char *)&R, sizeof(uint8_t));
-                    cache.write((char *)&G, sizeof(uint8_t));
-                    cache.write((char *)&B, sizeof(uint8_t));
-                    cache.write((char *)&A, sizeof(uint8_t));
+                    size_t p = 0;
+                    for (int y = 0; y < args.Image->size().height(); y++)
+                    {
+                        for (int x = 0; x < args.Image->size().width(); x++)
+                        {
+                            c = args.Image->pixelColor(x,y);
+                            original[p] = static_cast<char>(c.red());
+                            original[p + 1] = static_cast<char>(c.green());
+                            original[p + 2] = static_cast<char>(c.blue());
+                            original[p + 3] = static_cast<char>(c.alpha());
+                            p += 4;
+                        }
+                    }
                 }
+                char * compressed = new char[compressSIZE];
+
+                timer_manager::stop();
+                QString time;
+                timer_manager::get_time(time);
+                timer_manager::get_time(compressTotalTime);
+                timer_manager::reset();
+
+                qInfo() << "-- COMPRESSION | FILL BUFF | TIME = " << time;
+
+                qInfo() << "-- COMPRESSION | BUFF SIZES BEFORE | compressSIZE = " << compressSIZE
+                        << " | originalSIZE = " << originalSIZE;
+
+                timer_manager::start();
+
+                snappy_status st = snappy_compress(original, originalSIZE, compressed, &compressSIZE);
+
+
+                timer_manager::stop();
+                timer_manager::get_time(time);
+                timer_manager::get_time(compressTotalTime);
+                timer_manager::reset();
+
+                qInfo() << "-- COMPRESSION | COMPRESSION TIME = " << time;
+
+                if (st == snappy_status::SNAPPY_OK)
+                {
+                    qInfo() << "-- COMPRESSION | OK | compressSIZE = " << compressSIZE
+                            << " | originalSIZE = " << originalSIZE;
+                    timer_manager::start();
+                    cache.write((char *)&compressSIZE, sizeof(size_t));
+                    cache.write((char *)compressed, compressSIZE);
+                    timer_manager::stop();
+                    timer_manager::get_time(time);
+                    timer_manager::get_time(compressTotalTime);
+                    timer_manager::reset();
+
+                    qInfo() << "-- COMPRESSION | WRITE TO FILE = " << time;
+
+                    ok = true;
+                }
+                else if (st == snappy_status::SNAPPY_INVALID_INPUT)
+                {
+                    compressSIZE = 0;
+                    cache.write((char *)&compressSIZE, sizeof(size_t));
+                    qInfo() << "-- COMPRESSION | SNAPPY_INVALID_INPUT";
+                }
+                else if (st == snappy_status::SNAPPY_BUFFER_TOO_SMALL)
+                {
+                    compressSIZE = 0;
+                    cache.write((char *)&compressSIZE, sizeof(size_t));
+                    qInfo() << "-- COMPRESSION | SNAPPY_BUFFER_TOO_SMALL";
+                }
+
+                delete[] compressed;
+                delete[] original;
+
+                timer_manager::get_time(time, compressTotalTime);
+                qInfo() << "-- COMPRESSION | TOTAL TIME = " << time;
             }
-            return close(cache);
+            // -----------------------------------------------------------------------
+            else            // ------ without COMPRESSOR
+            {
+
+                QColor c; uint8_t R = 0; uint8_t G = 0; uint8_t B = 0; uint8_t A = 0;
+
+                timer_manager::start();
+
+                for (int y = 0; y < args.Image->size().height(); y++)
+                {
+                    for (int x = 0; x < args.Image->size().width(); x++)
+                    {
+                        c = args.Image->pixelColor(x,y);
+                        R = c.red();
+                        G = c.green();
+                        B = c.blue();
+                        A = c.alpha();
+                        cache.write((char *)&R, sizeof(uint8_t));
+                        cache.write((char *)&G, sizeof(uint8_t));
+                        cache.write((char *)&B, sizeof(uint8_t));
+                        cache.write((char *)&A, sizeof(uint8_t));
+                    }
+                }
+
+                timer_manager::stop();
+                QString time;
+                timer_manager::get_time(time);
+                timer_manager::reset();
+                qInfo() << "-- cache file | TIME WRITE TO FILE = " << time;
+
+                ok = true;
+            }
+            // -----------------------------------------------------------------------
+            close(cache);
+            return ok;
         }
     }
 
@@ -330,6 +438,7 @@ bool undo_redo_file::get_from_cache(UndoRedoFileArgs &args, cacheType ct)
         if (args.Image != nullptr)
         {
             m_stream.seekp(0);
+
             int32_t ID = 0;
             int32_t width = 0;
             int32_t height = 0;
@@ -341,33 +450,158 @@ bool undo_redo_file::get_from_cache(UndoRedoFileArgs &args, cacheType ct)
             cache.read((char *)&width, sizeof(int32_t));
             cache.read((char *)&height, sizeof(int32_t));
             cache.read((char *)&bits, sizeof(uint64_t));
-            if (static_cast<int>(ID) == args.Position)
+
+            int w = static_cast<int>(width);
+            int h = static_cast<int>(height);
+
+            // -----------------------------------------------------------------------
+            if (m_compress) // ---------- use COMPRESSOR
             {
-                m_IDpos = static_cast<int>(ID);
-                int w = static_cast<int>(width);
-                int h = static_cast<int>(height);
-                *args.Image = QImage(QSize(w, h), QImage::Format_RGBA8888_Premultiplied);
-                qInfo() << "-- get_from_cache() | ID = " << m_IDpos
-                        << " | w " << w
-                        << " | h " << h
-                        << " | b " << static_cast<int>(bits);
-                for (int y = 0; y < h; y++)
+                size_t compressSIZE = 0;
+                cache.read((char *)&compressSIZE, sizeof(size_t));
+
+                if (compressSIZE > 0 && static_cast<int>(ID) == args.Position)
                 {
-                    for (int x = 0; x < w; x++)
+
+                    qInfo() << "-- get_from_cache() | ID = " << m_IDpos
+                            << " | w " << w
+                            << " | h " << h
+                            << " | b " << static_cast<int>(bits);
+
+                    qInfo() << "-- DE COMPRESSION | compressSIZE = " << compressSIZE;
+
+                    unsigned long long compressTotalTime = 0;
+                    timer_manager::start();
+
+                    size_t originalSIZE = bits;
+                    char * uncompressed = new char[originalSIZE];
+                    char * compressed = new char[compressSIZE];
+
+                    cache.read((char *)compressed, compressSIZE);
+
+                    timer_manager::stop();
+                    QString time;
+                    timer_manager::get_time(time);
+                    timer_manager::get_time(compressTotalTime);
+                    timer_manager::reset();
+
+                    qInfo() << "-- DE COMPRESSION | READ FROM FILE = " << time;
+
+                    timer_manager::start();
+
+                    snappy_status st = snappy_uncompress(compressed, compressSIZE, uncompressed, &originalSIZE);
+
+                    timer_manager::stop();
+                    timer_manager::get_time(time);
+                    timer_manager::get_time(compressTotalTime);
+                    timer_manager::reset();
+
+                    qInfo() << "-- DE COMPRESSION | DECOMPRESS TIME = " << time;
+
+                    if (st == snappy_status::SNAPPY_OK)
                     {
-                        cache.read((char *)&R, sizeof(uint8_t));
-                        cache.read((char *)&G, sizeof(uint8_t));
-                        cache.read((char *)&B, sizeof(uint8_t));
-                        cache.read((char *)&A, sizeof(uint8_t));
-                        c = QColor(static_cast<int>(R)
-                                   , static_cast<int>(G)
-                                   , static_cast<int>(B)
-                                   , static_cast<int>(A));
-                        args.Image->setPixelColor(x, y, c);
+                        qInfo() << "-- DE COMPRESSION | OK | compressSIZE = " << compressSIZE
+                                << " | originalSIZE = " << originalSIZE;
+                        size_t p = 0;
+
+                        timer_manager::start();
+
+                        *args.Image = QImage(QSize(w, h), QImage::Format_RGBA8888_Premultiplied);
+
+                        for (int y = 0; y < h; y++)
+                        {
+                            for (int x = 0; x < w; x++)
+                            {
+                                // ----------------------------------
+                                // neviem ci je toto v poriadku, ale funguje to
+                                // uint8_t = char;
+                                R = uncompressed[p];
+                                G = uncompressed[p + 1];
+                                B = uncompressed[p + 2];
+                                A = uncompressed[p + 3];
+                                // ----------------------------------
+                                // ak je QColor(static_cast<int>(uncompressed[p])
+                                //      int z static_cast<int>(char) nefunguje, pise invalid color.
+                                c = QColor(static_cast<int>(R)
+                                           , static_cast<int>(G)
+                                           , static_cast<int>(B)
+                                           , static_cast<int>(A));
+                                args.Image->setPixelColor(x, y, c);
+                                p += 4;
+                            }
+                        }
+
+                        timer_manager::stop();
+                        timer_manager::get_time(time);
+                        timer_manager::get_time(compressTotalTime);
+                        timer_manager::reset();
+
+                        qInfo() << "-- DE COMPRESSION | FILL QImage TIME = " << time;
+
+                        ok = true;
                     }
+                    else if (st == snappy_status::SNAPPY_INVALID_INPUT)
+                    {
+                        qInfo() << "-- DE COMPRESSION | SNAPPY_INVALID_INPUT";
+                    }
+                    else if (st == snappy_status::SNAPPY_BUFFER_TOO_SMALL)
+                    {
+                        qInfo() << "-- DE COMPRESSION | SNAPPY_BUFFER_TOO_SMALL";
+                    }
+
+                    delete[] uncompressed;
+                    delete[] compressed;
+
+                    timer_manager::get_time(time, compressTotalTime);
+                    qInfo() << "-- DE COMPRESSION | TOTAL TIME = " << time;
+
                 }
-                ok = true;
+                else
+                {
+                    qInfo() << "-- DE COMPRESSION | FAIL | compressSIZE = " << compressSIZE;
+                }
             }
+            // -----------------------------------------------------------------------
+            else            // ------ without COMPRESSOR
+            {
+                if (static_cast<int>(ID) == args.Position)
+                {
+
+                    timer_manager::start();
+
+                    m_IDpos = static_cast<int>(ID);
+                    *args.Image = QImage(QSize(w, h), QImage::Format_RGBA8888_Premultiplied);
+                    qInfo() << "-- get_from_cache() | ID = " << m_IDpos
+                            << " | w " << w
+                            << " | h " << h
+                            << " | b " << static_cast<int>(bits);
+                    for (int y = 0; y < h; y++)
+                    {
+                        for (int x = 0; x < w; x++)
+                        {
+                            cache.read((char *)&R, sizeof(uint8_t));
+                            cache.read((char *)&G, sizeof(uint8_t));
+                            cache.read((char *)&B, sizeof(uint8_t));
+                            cache.read((char *)&A, sizeof(uint8_t));
+                            c = QColor(static_cast<int>(R)
+                                       , static_cast<int>(G)
+                                       , static_cast<int>(B)
+                                       , static_cast<int>(A));
+                            args.Image->setPixelColor(x, y, c);
+                        }
+                    }
+
+                    timer_manager::stop();
+                    QString time;
+                    timer_manager::get_time(time);
+                    timer_manager::reset();
+
+                    qInfo() << "-- cache file | READ FROM FILE = " << time;
+
+                    ok = true;
+                }
+            }
+            // -----------------------------------------------------------------------
         }
         close(cache);
     }

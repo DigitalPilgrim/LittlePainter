@@ -22,6 +22,7 @@ SOURCES += \
     painter_brush_texture.cpp \
     painter_canvas.cpp \
     painter_manager.cpp \
+    timer_manager.cpp \
     undo_redo_basic.cpp \
     undo_redo_file.cpp \
     undo_redo_special.cpp \
@@ -42,6 +43,7 @@ HEADERS += \
     painter_canvas.h \
     painter_manager.h \
     timer.h \
+    timer_manager.h \
     undo_redo_basic.h \
     undo_redo_file.h \
     undo_redo_special.h \
@@ -61,3 +63,9 @@ DISTFILES += \
 
 #RESOURCES +=
 
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/snappy/native/ -lsnappy64
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/snappy/native/ -lsnappy64
+
+INCLUDEPATH += $$PWD/snappy/include
+DEPENDPATH += $$PWD/snappy/include
