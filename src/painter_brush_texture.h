@@ -11,8 +11,11 @@ public:
 
     void draw(const DrawManagerArgs& args) override;
     void setImageColor(const QColor &value) override;
-    void setImageAlpha(const float &alpha) override;
+    void setImageAlpha(const float &alpha, bool recreate = false) override;
+    void resize() override;
+    void reinitialize() override;
 private:
+    void internalResize();
     void createOriginalAlpha(bool recreate = false);
 };
 

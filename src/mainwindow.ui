@@ -58,12 +58,12 @@
     <addaction name="actionChange_a_Pen_Size"/>
     <addaction name="actionPen_Color"/>
     <addaction name="actionBrush_Transparency"/>
+    <addaction name="menuBrush_Texture"/>
     <addaction name="separator"/>
     <addaction name="actionClear_Image"/>
     <addaction name="actionClear_Color"/>
     <addaction name="separator"/>
     <addaction name="actionBrush_Circle"/>
-    <addaction name="menuBrush_Texture"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -100,8 +100,14 @@
    </property>
   </action>
   <action name="actionBrush_Circle">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Brush Circle</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionBrush_Transparency">

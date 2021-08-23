@@ -123,7 +123,7 @@ void MainWindow::changePenColor()
 void MainWindow::changePenWidth()
 {
     bool ok = false;
-    int nw = QInputDialog::getInt(this, "Little Painter", "Select pen widht: ", m_cPainter->penWidth(), 1, 50, 1, &ok);
+    int nw = QInputDialog::getInt(this, "Little Painter", "Select pen widht: ", m_cPainter->penWidth(), 10, 500, 10, &ok);
     if (ok)
     {
         m_cPainter->setPenWidth(nw);

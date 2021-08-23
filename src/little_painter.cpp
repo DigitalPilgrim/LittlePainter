@@ -30,10 +30,8 @@ Little_Painter::Little_Painter(QWidget *parent) : QWidget(parent)
     ClearImage();
     m_im.ResourcePath(QCoreApplication::applicationDirPath() + "/Resources");
     m_painterManager.Initialize();
-    m_painterManager.BrushType(e_brushType::circleBrush);
+    m_painterManager.BrushType(e_brushType::textureBrush);
     m_painterManager.Color(Qt::blue);
-
-
     /*UndoRedoArgs ura(ghf::AreaPixels(0, 0, m_image.size().width(), m_image.height()), &m_image, &m_floatTexture);
     undo_redo_system::set(ura, true);*/
 }
@@ -50,12 +48,17 @@ void Little_Painter::Undo()
     //UndoRedoSpecialArgs ura(&m_image, area);
     if (urs::undoS(ura))
     {
-       /* qInfo() << "undo done | Area x = " << ura.Area.Left
+       /*qInfo() << "undo done | Area x = " << ura.Area.Left
                 << ", y = " << ura.Area.Top
                 << ", w = " << ura.Area.Right
                 << ", h = " << ura.Area.Bottom;*/
 
         //drawBoundingBox(ura.Area);
+        if (m_floatTexture.SetImage(*m_imageRender, QRect(area.Left, area.Top, area.Right, area.Bottom)))
+        {
+            qInfo() << "-- UNDO | SetImage OK";
+        }
+        else qInfo() << "-- UNDO | SetImage FAILED";
         update(QRect(ura.Area.Left, ura.Area.Top, ura.Area.Right, ura.Area.Bottom));
         qInfo() << "UNDO - END ----------------------------------";
     }
@@ -79,6 +82,11 @@ void Little_Painter::Redo()
                 << ", w = " << ura.Area.Right
                 << ", h = " << ura.Area.Bottom;*/
         //drawBoundingBox(ura.Area);
+        if (m_floatTexture.SetImage(*m_imageRender, QRect(area.Left, area.Top, area.Right, area.Bottom)))
+        {
+            qInfo() << "-- REDO | SetImage OK";
+        }
+        else qInfo() << "-- REDO | SetImage FAILED";
         update(QRect(ura.Area.Left, ura.Area.Top, ura.Area.Right, ura.Area.Bottom));
         qInfo() << "REDO - END ----------------------------------";
     }
@@ -376,7 +384,15 @@ void Little_Painter::drawLineTo(const QPoint &endPoint)
     painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     QRect area;
 
-    m_painterManager.draw(DrawManagerArgs(&painter, &endPoint, &area, &m_lastPoint, &m_measurePoint)); // painter, endPoint, area
+    m_painterManager.draw(
+                DrawManagerArgs(&painter
+                                , &m_floatTexture
+                                , &endPoint
+                                , &area
+                                , &m_lastPoint
+                                , &m_measurePoint
+                                , m_imageRender)
+                ); // painter, endPoint, area
 
     m_storedArea = ghf::AreaPixels(area.top(), area.left(), area.width(), area.height());
     m_storedArea.LeftA = area.left();

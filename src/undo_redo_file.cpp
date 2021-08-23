@@ -294,15 +294,15 @@ bool undo_redo_file::set_to_cache(const UndoRedoFileArgs &args, cacheType ct)
             // COMPRESSION ---------------------------------------------------------
             if (m_compress) // ---------- use COMPRESSOR
             {
-                QColor c;
+                //QColor c;
 
                 unsigned long long compressTotalTime = 0;
                 timer_manager::start();
 
                 const size_t originalSIZE = (args.Image->size().width() * args.Image->size().height() * 4 );
-                size_t compressSIZE = originalSIZE * 2; // * 2
-                char * original = new char[originalSIZE];
-                {
+                size_t compressSIZE = snappy_max_compressed_length(originalSIZE); //originalSIZE * 2; // * 2
+                char * original = reinterpret_cast<char *>(args.Image->bits());//new char[originalSIZE];
+                /*{
                     size_t p = 0;
                     for (int y = 0; y < args.Image->size().height(); y++)
                     {
@@ -316,7 +316,7 @@ bool undo_redo_file::set_to_cache(const UndoRedoFileArgs &args, cacheType ct)
                             p += 4;
                         }
                     }
-                }
+                }*/
                 char * compressed = new char[compressSIZE];
 
                 timer_manager::stop();
@@ -372,7 +372,7 @@ bool undo_redo_file::set_to_cache(const UndoRedoFileArgs &args, cacheType ct)
                 }
 
                 delete[] compressed;
-                delete[] original;
+                //delete[] original;
 
                 timer_manager::get_time(time, compressTotalTime);
                 qInfo() << "-- COMPRESSION | TOTAL TIME = " << time;
@@ -454,6 +454,8 @@ bool undo_redo_file::get_from_cache(UndoRedoFileArgs &args, cacheType ct)
             int w = static_cast<int>(width);
             int h = static_cast<int>(height);
 
+            *args.Image = QImage(QSize(w, h), QImage::Format_RGBA8888_Premultiplied);
+
             // -----------------------------------------------------------------------
             if (m_compress) // ---------- use COMPRESSOR
             {
@@ -474,7 +476,7 @@ bool undo_redo_file::get_from_cache(UndoRedoFileArgs &args, cacheType ct)
                     timer_manager::start();
 
                     size_t originalSIZE = bits;
-                    char * uncompressed = new char[originalSIZE];
+                    unsigned char * uncompressed = args.Image->bits(); // new unsigned char[originalSIZE];
                     char * compressed = new char[compressSIZE];
 
                     cache.read((char *)compressed, compressSIZE);
@@ -489,7 +491,8 @@ bool undo_redo_file::get_from_cache(UndoRedoFileArgs &args, cacheType ct)
 
                     timer_manager::start();
 
-                    snappy_status st = snappy_uncompress(compressed, compressSIZE, uncompressed, &originalSIZE);
+                    snappy_status st = snappy_uncompress(compressed, compressSIZE
+                                                         , reinterpret_cast<char *>(uncompressed), &originalSIZE);
 
                     timer_manager::stop();
                     timer_manager::get_time(time);
@@ -502,12 +505,11 @@ bool undo_redo_file::get_from_cache(UndoRedoFileArgs &args, cacheType ct)
                     {
                         qInfo() << "-- DE COMPRESSION | OK | compressSIZE = " << compressSIZE
                                 << " | originalSIZE = " << originalSIZE;
-                        size_t p = 0;
 
                         timer_manager::start();
 
-                        *args.Image = QImage(QSize(w, h), QImage::Format_RGBA8888_Premultiplied);
-
+                        /*size_t p = 0;
+                        //*args.Image = QImage(QSize(w, h), QImage::Format_RGBA8888_Premultiplied);
                         for (int y = 0; y < h; y++)
                         {
                             for (int x = 0; x < w; x++)
@@ -529,7 +531,7 @@ bool undo_redo_file::get_from_cache(UndoRedoFileArgs &args, cacheType ct)
                                 args.Image->setPixelColor(x, y, c);
                                 p += 4;
                             }
-                        }
+                        }*/
 
                         timer_manager::stop();
                         timer_manager::get_time(time);
@@ -549,7 +551,7 @@ bool undo_redo_file::get_from_cache(UndoRedoFileArgs &args, cacheType ct)
                         qInfo() << "-- DE COMPRESSION | SNAPPY_BUFFER_TOO_SMALL";
                     }
 
-                    delete[] uncompressed;
+                    //delete[] uncompressed;
                     delete[] compressed;
 
                     timer_manager::get_time(time, compressTotalTime);

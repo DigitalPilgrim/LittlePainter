@@ -120,29 +120,37 @@
 
     ================================
 
-    Sobota: 18:30 -
+    Sobota: 18:30 - 23:00   | 210m (3h 30min)
 
     --------------------------------
-    Sobota dokopy:          |
+    Sobota dokopy:          | 210m (3h 30min)
 
     ======================================================
 
-    undo redo                   - z casti hotovo
+    Pondelok: 10:00 - 10:50 | 50min
+    Pondelok: 12:00 - 14:00 | 120min (2h)
+
+    --------------------------------
+    Pondelok dokopy:        | 170 (2h 50min)
+
+    ======================================================
+
+
+    undo redo                   - hotovo
     do pamate a neskor do disku - hotovo
 
     vymena textury      - hotovo
     a opena  save image - hotovo / ale momentalne to nemusi fungovat (nepouzivam uz floattexturu)
 
-    spravit casovac pri tahoch stetca -
-    spravit timre kolko trva undo, redo atd...
-    pre viac vlakien viac QImage na vlakno - nerobit mnohovlakno
+    spravit casovac pri tahoch stetca - hotovo
+    spravit timre kolko trva undo, redo atd... - hotovo
 
-    komprimovat obrazok - RLE typ
-    kniznica na kompresiu
+    komprimovat obrazok - RLE typ - hotovo
+    kniznica na kompresiu         - hotovo (snappy)
     casy kolko trva:
-        - na disk
-        - do pamate
-        -  atd..
+        - na disk                - hotovo
+        - do pamate              - hotovo
+        -  atd..                 - hotovo
 
 
 */

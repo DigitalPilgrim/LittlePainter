@@ -103,10 +103,10 @@ struct UndoRedoSpecialSetIniArgs
 
 struct UndoRedoSpecialArgs
 {
-    ghf::AreaPixels Area;
+    ghf::AreaPixels & Area;
     QImage * Image = nullptr;
 
-    UndoRedoSpecialArgs(QImage * image, const ghf::AreaPixels & area)
+    UndoRedoSpecialArgs(QImage * image, ghf::AreaPixels & area)
         : Area(area)
         , Image(image)
     {}
@@ -152,6 +152,7 @@ struct UndoRedoSpecialEndArgs
 {
     ghf::AreaPixels Area;
     QImage * Image = nullptr;
+    FloatTexture * FTexture = nullptr;
 
     UndoRedoSpecialEndArgs(const ghf::AreaPixels & area)
         : Area(area)
@@ -161,6 +162,14 @@ struct UndoRedoSpecialEndArgs
                            , QImage * image)
         : Area(area)
         , Image(image)
+    {}
+
+    UndoRedoSpecialEndArgs(const ghf::AreaPixels & area
+                           , QImage * image
+                           , FloatTexture * floatedTexture)
+        : Area(area)
+        , Image(image)
+        , FTexture(floatedTexture)
     {}
 };
 
@@ -203,7 +212,7 @@ public:
     bool redo(UndoRedoSpecialArgs& args);
 private:
     bool undoRedoCache(UndoRedoSpecialArgs& args, bool Forward);
-    void setCache();
+    void setCache(const UndoRedoSpecialEndArgs &args);
 public:
 
     bool setINI(const UndoRedoSpecialSetIniArgs &args);

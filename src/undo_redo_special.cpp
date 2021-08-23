@@ -147,9 +147,11 @@ bool undo_redo_special::undo(UndoRedoSpecialArgs &args)
         }
         else if (it->Action == historyActions::store_image)
         {
-            painter.drawImage(QRect(args.Area.Left, args.Area.Top, args.Area.Right, args.Area.Bottom)
-                              , it->StoredImage
-                              , QRect(0, 0, it->StoredImage.size().width(), it->StoredImage.size().height()));
+            painter.drawImage(QPoint(args.Area.Left, args.Area.Top)
+                              , it->StoredImage.copy(
+                                  QRect(args.Area.Left, args.Area.Top, it->StoredImage.size().width()
+                                        , it->StoredImage.size().height()))
+                              );
         }
 
         // -------------------------------------------------------------------------------------------------
@@ -162,7 +164,8 @@ bool undo_redo_special::undo(UndoRedoSpecialArgs &args)
             fromPos = (m_hPos - MAX_CANVAS_CACHE) - 1;
             painter.drawImage(QRect(args.Area.Left, args.Area.Top, args.Area.Right, args.Area.Bottom)
                               , m_activeCanvasCache->Canvas
-                              , QRect(args.Area.Left, args.Area.Top, args.Area.Right, args.Area.Bottom));
+                              , QRect(args.Area.Left, args.Area.Top, args.Area.Right, args.Area.Bottom)
+                              );
         }
         qInfo() << "-- UNDO | fromPos = " << fromPos
                 << " | m_useCanvasCache = " << debug_useCanvasCache.c_str()
@@ -548,7 +551,7 @@ bool undo_redo_special::undoRedoCache(UndoRedoSpecialArgs &args, bool Forward)
 
 // ----------------------------------------------------------------------------------------------------------------
 
-void undo_redo_special::setCache()
+void undo_redo_special::setCache(const UndoRedoSpecialEndArgs &args)
 {
     // ---------------------------------------------------------------------------
     ++m_cachePos;
@@ -1056,7 +1059,7 @@ bool undo_redo_special::setEnd(const UndoRedoSpecialEndArgs &args)
         m_historyActive = nullptr;
         ok = true;
     }
-    setCache();
+    setCache(args);
     if (!ok)
     {
         qInfo() << "setEnd(args) | exit false" ;

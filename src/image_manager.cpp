@@ -76,7 +76,6 @@ bool image_manager::loadAsResource(QImage &image, e_imageBrush ib)
     {
         if (ib == e_imageBrush::custom)
         {
-            // dorobit
             QImage img;
             e_file_state fs = file_manager::openImage(img, m_resPath);
             if (fs == e_file_state::opened || fs == e_file_state::closed)

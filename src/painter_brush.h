@@ -6,6 +6,7 @@
 #include <QPoint>
 #include "image_manager.h"
 #include "graphic_helper_functions.h"
+#include "floattexture.h"
 #include <vector>
 
 enum class e_brushType
@@ -21,6 +22,7 @@ enum class e_brushType
 struct DrawManagerArgs
 {
     QPainter * Painter = nullptr;
+    FloatTexture * FTexture = nullptr;
     const QPoint * EndPoint = nullptr;
     QRect * Area = nullptr;
     QImage * DrawArea = nullptr; // zatial zbytocne
@@ -63,13 +65,30 @@ struct DrawManagerArgs
         , MeasurePoint(measurePoint)
         , PixelArea(pixelArea)
     {}
+
+    DrawManagerArgs(QPainter * painter
+                    , FloatTexture * fTexture
+                    , const QPoint * endPoint
+                    , QRect * area
+                    , QPoint * lastPoint
+                    , QPoint * measurePoint
+                    , QImage * drawArea = nullptr)
+        : Painter(painter)
+        , FTexture(fTexture)
+        , EndPoint(endPoint)
+        , Area(area)
+        , DrawArea(drawArea)
+        , LastPoint(lastPoint)
+        , MeasurePoint(measurePoint)
+    {}
 };
 
 // =============================================================================
 
 struct painter_brush
 {
-    //std::vector<std::vector<int>> OriginalImageAlpha;
+    QImage OriginalImageTexture;
+    std::vector<std::vector<int>> OriginalImageAlpha;
     QImage Image;
     QColor Color = QColor(128, 128, 128, 255);
     int Width = 1;
@@ -85,7 +104,9 @@ struct painter_brush
 
     virtual void draw(const DrawManagerArgs& args) {}
     virtual void setImageColor(const QColor &value) {}
-    virtual void setImageAlpha(const float &alpha) {}
+    virtual void setImageAlpha(const float &alpha, bool recreate = false) {}
+    virtual void resize() {}
+    virtual void reinitialize() {}
 };
 
 // =============================================================================

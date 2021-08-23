@@ -99,6 +99,7 @@ float painter_manager::BrushTransparency() const
 void painter_manager::Width(int value)
 {
     m_brushes[BRUSH_SELECTED]->Width = value;
+    m_brushes[BRUSH_SELECTED]->resize();
 }
 
 // -------------------------------------------------------------------------------------------------------------------------
@@ -129,11 +130,14 @@ void painter_manager::loadTexture()
     /*if (image_manager::loadAsResource(m_brush[static_cast<int>(e_brushType::textureBrush)].Image
                                       , m_brush[static_cast<int>(e_brushType::textureBrush)].ImageBrushSelected))*/
 
-    if (image_manager::loadAsResource(m_brushes[BRUSH_TEXTURE]->Image
+    if (image_manager::loadAsResource(m_brushes[BRUSH_TEXTURE]->OriginalImageTexture
                                       , m_brushes[BRUSH_TEXTURE]->ImageBrushSelected))
     {
         qInfo() << "image loaded";
-        m_brushes[BRUSH_TEXTURE]->setImageColor(m_brushes[BRUSH_TEXTURE]->Color);
+        //m_brushes[BRUSH_TEXTURE]->Image = m_brushes[BRUSH_TEXTURE]->OriginalImageTexture;
+        m_brushes[BRUSH_TEXTURE]->reinitialize();
+        /*m_brushes[BRUSH_TEXTURE]->setImageColor(m_brushes[BRUSH_TEXTURE]->Color);
+        m_brushes[BRUSH_TEXTURE]->setImageAlpha(m_brushes[BRUSH_TEXTURE]->Alpha, true);*/
     }
     else
     {

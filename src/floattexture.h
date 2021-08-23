@@ -32,6 +32,8 @@ class FloatTexture
 {
     std::vector<std::vector<FRGBA>> yx;
     QSize m_size;
+    using mf_color = void(FloatTexture::*)(const QColor& c, const QPoint& pos);
+    mf_color mf_Color = nullptr;
 public:
     FloatTexture();
 
@@ -47,7 +49,8 @@ public:
     bool SetPixelColor(const float& r, const float& g, const float& b, const float& a, const QPoint& pos);
 
     bool SetImage(const QImage& image);
-    bool SetImage(const QImage& image, const QRect& area, bool imageAreaPosZero = false);
+    bool SetImage(const QImage& image, const QRect& area, bool imageAreaPosZero = false, bool add = false);
+    bool AddImage(const QImage& image, const QRect& area, bool imageAreaPosZero = false);
     bool GetImage(QImage& image);
     bool GetImage(QImage& image, const QRect& area);
     void DrawImageToImage(QImage& drawTo, const QImage& drawFrom, const QRect& area);
@@ -57,6 +60,7 @@ public:
 private:
 
     void SetPixelColorInternal(const QColor& c, const QPoint& pos);
+    void AddPixelColorInternal(const QColor& c, const QPoint& pos);
 
 
 };

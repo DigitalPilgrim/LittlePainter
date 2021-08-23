@@ -24,7 +24,7 @@ void painter_brush_texture::draw(const DrawManagerArgs &args)
     // maximalna vzdialenost medzi dvoma bodmi
     // 1. bod kde sa naposledy vykreslila textura
     // 2. bod kde sa ma vykreslit nasledujuca textura
-    int distanceCompare = std::ceil((static_cast<double>(pb->Width) / 2.0) / 4.0);
+    int distanceCompare = std::ceil((static_cast<double>(pb->Width) / 2.0) / 10.0);
 
 
     int radius = pb->Width + 2;
@@ -36,7 +36,8 @@ void painter_brush_texture::draw(const DrawManagerArgs &args)
 
     // DRAWING
     //args.Painter->setCompositionMode(QPainter::CompositionMode_Source);
-    args.Painter->setOpacity(pb->Alpha);
+    //args.Painter->setOpacity(pb->Alpha);
+    QRect ftArea;
     if (*args.LastPoint != *args.EndPoint)
     {
         int pointsX = std::abs(args.LastPoint->x() - args.EndPoint->x());
@@ -55,7 +56,7 @@ void painter_brush_texture::draw(const DrawManagerArgs &args)
         }
 
         // ak sa taha stetcom pomaly, tak sa bude vykreslovat 1px kruh
-        bool draw1px = loopMax >= 1 && loopMax <= 3;
+        //bool draw1px = loopMax >= 1 && loopMax <= 3;
 
         for (int a = 0; a < loopMax; a++)
         {
@@ -70,19 +71,37 @@ void painter_brush_texture::draw(const DrawManagerArgs &args)
             // uz nestiha vykreslovat, ale v Release mode to ide svizne stale.
             // -----------------------------------------------------------------------------------------------
 
-            //if (std::ceil(distance) >= distanceCompare || draw1px)
+            if (std::ceil(distance) >= distanceCompare /*|| draw1px*/)
             {
-                args.Painter->drawImage(QPoint(posX -  (radius / 2), posY -  (radius / 2)), pb->Image);
+                // -----------------------------------------------------------------------------
+                // povodny kod
+                //args.Painter->drawImage(QPoint(posX -  (radius / 2), posY -  (radius / 2)), pb->Image);
+                //*args.MeasurePoint = QPoint(posX, posY);
+                // -----------------------------------------------------------------------------
+                // float texture
+                ftArea = QRect(posX -  (radius / 2), posY -  (radius / 2)
+                               , pb->Image.size().width(), pb->Image.size().height());
+                args.FTexture->AddImage(pb->Image, ftArea, true);
+                args.FTexture->GetImage(*args.DrawArea, ftArea);
                 *args.MeasurePoint = QPoint(posX, posY);
+                // -----------------------------------------------------------------------------
             }
         }
     }
     else
     {
-
-        args.Painter->drawImage(QPoint(args.EndPoint->x() -  (radius / 2), args.EndPoint->y() -  (radius / 2)), pb->Image);
+        // -----------------------------------------------------------------------------
+        // povodny kod
+        //args.Painter->drawImage(QPoint(args.EndPoint->x() -  (radius / 2), args.EndPoint->y() -  (radius / 2)), pb->Image);
+        //*args.MeasurePoint = *args.EndPoint;
+        // -----------------------------------------------------------------------------
+        // float texture
+        ftArea = QRect(args.EndPoint->x() -  (radius / 2), args.EndPoint->y() -  (radius / 2)
+                       , pb->Image.size().width(), pb->Image.size().height());
+        args.FTexture->AddImage(pb->Image, ftArea, true);
+        args.FTexture->GetImage(*args.DrawArea, ftArea);
         *args.MeasurePoint = *args.EndPoint;
-        //m_firstHit = false;
+        // -----------------------------------------------------------------------------
     }
 
     //args.Painter->setOpacity(1.0f);
@@ -116,9 +135,33 @@ void painter_brush_texture::setImageColor(const QColor &value)
 
 }
 
-void painter_brush_texture::setImageAlpha(const float &alpha)
+
+void painter_brush_texture::resize()
 {
-    /*createOriginalAlpha();
+    if (Image.size().width() != Width)
+    {
+        Image = OriginalImageTexture.scaledToWidth(Width);
+
+        setImageColor(Color);
+        setImageAlpha(Alpha, true);
+    }
+}
+
+void painter_brush_texture::reinitialize()
+{
+    internalResize();
+    setImageColor(Color);
+    setImageAlpha(Alpha, true);
+}
+
+void painter_brush_texture::internalResize()
+{
+    Image = OriginalImageTexture.scaledToWidth(Width);
+}
+
+void painter_brush_texture::setImageAlpha(const float &alpha, bool recreate)
+{
+    createOriginalAlpha(recreate);
 
     QColor cFromImage;
     QColor cToImage;
@@ -132,12 +175,12 @@ void painter_brush_texture::setImageAlpha(const float &alpha)
             cToImage.setAlpha(OriginalImageAlpha[y][x] * alpha);
             Image.setPixelColor(x, y, cToImage);
         }
-    }*/
+    }
 }
 
 void painter_brush_texture::createOriginalAlpha(bool recreate)
 {
-    /*if ((!m_alphaSet || recreate) && Image.size().height() > 0)
+    if ((!m_alphaSet || recreate) && Image.size().height() > 0)
     {
         QColor aFromImage;
         QSize imageSize = Image.size();
@@ -159,5 +202,5 @@ void painter_brush_texture::createOriginalAlpha(bool recreate)
             }
         }
         m_alphaSet = true;
-    }*/
+    }
 }

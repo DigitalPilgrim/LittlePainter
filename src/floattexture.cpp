@@ -110,7 +110,7 @@ bool FloatTexture::SetImage(const QImage &image)
     return ok;
 }
 
-bool FloatTexture::SetImage(const QImage &image, const QRect &area, bool imageAreaPosZero)
+bool FloatTexture::SetImage(const QImage &image, const QRect &area, bool imageAreaPosZero, bool add)
 {
    /* qInfo() << "SetImage(const QImage &image, const QRect &area) | image.size() "
             << "w = " << image.size().width()
@@ -157,18 +157,33 @@ bool FloatTexture::SetImage(const QImage &image, const QRect &area, bool imageAr
     //qInfo() << "iX = " << iX << ", iY = " << iY;
     //qInfo() << "areaX = " << areaX << ", areaY = " << areaY;
 
+    if (add)
+    {
+        mf_Color = &FloatTexture::AddPixelColorInternal;
+    }
+    else
+    {
+        mf_Color = &FloatTexture::SetPixelColorInternal;
+    }
+
     for (int y = areaY; y < areaYmax; y++)
     {
         for (int x = areaX; x < areaXmax; x++)
         {
             c = image.pixelColor(iX, iY);
-            SetPixelColorInternal(c, QPoint(x, y));
+            //SetPixelColorInternal(c, QPoint(x, y));
+            (this->*mf_Color)(c, QPoint(x, y));
             ++iX;
         }
         ++iY;
         iX = iXreset;
     }
     return ok;
+}
+
+bool FloatTexture::AddImage(const QImage &image, const QRect &area, bool imageAreaPosZero)
+{
+    return SetImage(image, area, imageAreaPosZero, true);
 }
 
 bool FloatTexture::GetImage(QImage &image)
@@ -217,7 +232,11 @@ bool FloatTexture::GetImage(QImage &image, const QRect &area)
         for (int x = areaX; x < areaXmax; x++)
         {
             fc = &yx[y][x];
-            c.setRgbF(fc->R, fc->G, fc->B, fc->A);
+            //c.setRgbF(fc->R, fc->G, fc->B, fc->A);
+            c.setRgb(static_cast<int>(fc->R * 255.f)
+                     , static_cast<int>(fc->G * 255.f)
+                     , static_cast<int>(fc->B * 255.f)
+                     , static_cast<int>(fc->A * 255.f));
             image.setPixelColor(x, y, c);
         }
     }
@@ -274,6 +293,17 @@ void FloatTexture::SetPixelColorInternal(const QColor &c, const QPoint &pos)
             , a =0.0;
     c.getRgbF(&r, &g, &b, &a);
     yx[pos.y()][pos.x()] = { r, g, b, a };
-    //FRGBA test = xy[pos.x()][pos.y()];
-    //r = test.R;
+}
+
+void FloatTexture::AddPixelColorInternal(const QColor &c, const QPoint &pos)
+{
+    float   r = 0.0
+            , g = 0.0
+            , b = 0.0
+            , a =0.0;
+    c.getRgbF(&r, &g, &b, &a);
+    FRGBA & fc = yx[pos.y()][pos.x()];
+    fc.R = fc.R * (1.f - a) + r * a;
+    fc.G = fc.G * (1.f - a) + g * a;
+    fc.B = fc.B * (1.f - a) + b * a;
 }

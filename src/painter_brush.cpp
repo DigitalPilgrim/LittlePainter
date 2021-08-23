@@ -8,11 +8,12 @@
 void painter_brush::set(const painter_brush *pb)
 {
     Image = pb->Image;
+    OriginalImageTexture = pb->OriginalImageTexture;
     Color = pb->Color;
     Width = pb->Width;
     Alpha = pb->Alpha;
     Type = pb->Type;
-    //OriginalImageAlpha = pb->OriginalImageAlpha;
+    OriginalImageAlpha = pb->OriginalImageAlpha;
     ImageBrushSelected = pb->ImageBrushSelected;
     /*qInfo() << "-- painter_brush::set() ----------------";
     debug_paint_brush(this);
