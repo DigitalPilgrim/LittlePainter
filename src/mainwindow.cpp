@@ -10,6 +10,11 @@
 #include <QLayout>
 #include <QMessageBox>
 
+/*
+
+	Pridany text pre Test
+
+*/
 // ------------------------------------------------------------------------------------------------------------
 
 MainWindow::MainWindow(QWidget *parent)
